@@ -1,0 +1,2672 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BINARA - Belajar Sistem Bilangan Interaktif</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome untuk Ikon Profesional -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        navy: {
+                            950: '#030712',
+                            900: '#0F172A',
+                            800: '#1E293B',
+                            700: '#334155',
+                        },
+                        electric: {
+                            500: '#3B82F6',
+                            600: '#2563EB',
+                            700: '#1D4ED8',
+                        },
+                        cyan: {
+                            400: '#38BDF8',
+                            500: '#0EA5E9',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Kustomisasi Scrollbar & Animasi Halus yang Memanjakan Mata */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f8fafc;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        .fade-in {
+            animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .bit-switch {
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .bit-switch:active {
+            transform: scale(0.92);
+        }
+        .interactive-card {
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .interactive-card:hover {
+            transform: translateY(-4px);
+        }
+        .cyber-grid {
+            background-size: 36px 36px;
+            background-image: 
+                linear-gradient(to right, rgba(56, 189, 248, 0.08) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(56, 189, 248, 0.08) 1px, transparent 1px);
+        }
+        /* CSS Khusus Mode Cetak Rapor Evaluasi */
+        @media print {
+            aside, header, footer, .no-print {
+                display: none !important;
+            }
+            main {
+                padding-left: 0 !important;
+            }
+            #app-content {
+                padding: 0 !important;
+                max-width: 100% !important;
+            }
+            body {
+                background: white !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased selection:bg-cyan-500 selection:text-white flex flex-col min-h-screen">
+
+    <!-- Notifikasi Toast / Modal Kustom (Pengganti alert/confirm) -->
+    <div id="toast-container" class="fixed bottom-6 right-6 z-50 flex flex-col gap-2.5 pointer-events-none"></div>
+
+    <div id="custom-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/70 backdrop-blur-md p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-7 shadow-2xl border border-slate-100 fade-in">
+            <div class="flex items-center gap-3.5 mb-3">
+                <div id="modal-icon" class="w-12 h-12 rounded-2xl bg-blue-100 text-electric-600 flex items-center justify-center text-xl shadow-inner">
+                    <i class="fa-solid fa-circle-question"></i>
+                </div>
+                <h3 id="modal-title" class="text-xl font-extrabold text-navy-900">Konfirmasi</h3>
+            </div>
+            <p id="modal-message" class="text-slate-600 text-sm leading-relaxed mb-7">Apakah Anda yakin?</p>
+            <div class="flex justify-end gap-3" id="modal-actions">
+                <button id="modal-cancel" class="px-5 py-3 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-100 transition">Batal</button>
+                <button id="modal-confirm" class="px-6 py-3 rounded-2xl text-sm font-bold bg-electric-500 text-white hover:bg-electric-600 shadow-lg shadow-blue-500/25 transition">Ya, Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Layout Utama Dashboard -->
+    <div class="flex flex-1 flex-col lg:flex-row">
+        
+        <!-- Sidebar Navigasi (Desktop) & Top Header (Mobile/Tablet) -->
+        <aside class="bg-navy-900 text-white lg:w-76 lg:fixed lg:inset-y-0 z-40 flex flex-col border-b lg:border-b-0 lg:border-r border-slate-800 shadow-2xl">
+            <!-- Brand Header -->
+            <div class="flex items-center justify-between px-6 py-5 lg:py-7 border-b border-slate-800/80">
+                <button onclick="navigateTo('beranda')" class="flex items-center gap-3.5 text-left group focus:outline-none">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-electric-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/25 group-hover:scale-105 transition duration-300">
+                        <span class="font-mono font-black text-navy-950 text-xl tracking-tighter">01</span>
+                    </div>
+                    <div>
+                        <span class="font-black text-2xl tracking-wide bg-gradient-to-r from-white via-cyan-200 to-cyan-400 bg-clip-text text-transparent block leading-tight">BINARA</span>
+                        <span class="text-[11px] text-cyan-400 font-bold tracking-widest uppercase mt-0.5 block">Sistem Bilangan SMP</span>
+                    </div>
+                </button>
+                <!-- Tombol Hamburger Mobile -->
+                <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="lg:hidden p-3 rounded-2xl bg-navy-800 text-cyan-400 hover:bg-navy-700 focus:outline-none shadow-md">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Menu Navigasi -->
+            <nav id="nav-menu" class="hidden lg:flex flex-col flex-1 px-5 py-6 space-y-2 overflow-y-auto">
+                <button onclick="navigateTo('beranda')" data-nav="beranda" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all">
+                    <i class="fa-solid fa-house w-6 text-center text-lg"></i>
+                    <span>Beranda Utama</span>
+                </button>
+                <button onclick="navigateTo('materi')" data-nav="materi" class="nav-item flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all">
+                    <div class="flex items-center gap-4">
+                        <i class="fa-solid fa-book-open w-6 text-center text-lg"></i>
+                        <span>Materi Belajar</span>
+                    </div>
+                    <span id="nav-materi-badge" class="text-xs font-mono font-extrabold bg-navy-800 text-cyan-400 px-2.5 py-1 rounded-xl shadow-inner">0/6</span>
+                </button>
+                <button onclick="navigateTo('lab')" data-nav="lab" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all">
+                    <i class="fa-solid fa-microchip w-6 text-center text-lg"></i>
+                    <span>Lab Konversi</span>
+                </button>
+                <button onclick="navigateTo('latihan')" data-nav="latihan" class="nav-item flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all">
+                    <div class="flex items-center gap-4">
+                        <i class="fa-solid fa-gamepad w-6 text-center text-lg"></i>
+                        <span>Latihan Soal</span>
+                    </div>
+                    <span id="nav-latihan-badge" class="text-xs font-mono font-extrabold bg-navy-800 text-cyan-400 px-2.5 py-1 rounded-xl shadow-inner">0/3</span>
+                </button>
+                <button onclick="navigateTo('evaluasi')" data-nav="evaluasi" class="nav-item flex items-center justify-between px-4 py-3.5 rounded-2xl text-sm font-bold transition-all">
+                    <div class="flex items-center gap-4">
+                        <i class="fa-solid fa-award w-6 text-center text-lg"></i>
+                        <span>Evaluasi Akhir</span>
+                    </div>
+                    <span id="nav-eval-badge" class="text-xs font-mono font-extrabold bg-navy-800 text-cyan-400 px-2.5 py-1 rounded-xl shadow-inner">-</span>
+                </button>
+                <button onclick="navigateTo('profil')" data-nav="profil" class="nav-item flex items-center gap-4 px-4 py-3.5 rounded-2xl text-sm font-bold transition-all">
+                    <i class="fa-solid fa-user-astronaut w-6 text-center text-lg"></i>
+                    <span>Profil & Badge</span>
+                </button>
+
+                <!-- Kartu XP & Level Mini di Sidebar -->
+                <div class="pt-6 mt-auto">
+                    <div class="bg-gradient-to-b from-navy-800 to-navy-950 border border-slate-700/80 rounded-3xl p-5 shadow-xl">
+                        <div class="flex items-center justify-between mb-2.5">
+                            <span class="text-xs font-bold text-slate-300">Poin XP Belajar</span>
+                            <span id="sidebar-xp" class="font-mono text-xs font-extrabold text-cyan-400 bg-cyan-950/80 px-2.5 py-0.5 rounded-lg border border-cyan-500/30">0 XP</span>
+                        </div>
+                        <div class="w-full bg-slate-950 rounded-full h-2.5 overflow-hidden mb-2.5 p-0.5 border border-slate-800">
+                            <div id="sidebar-progress-bar" class="bg-gradient-to-r from-electric-500 to-cyan-400 h-full rounded-full transition-all duration-500 shadow-sm" style="width: 0%"></div>
+                        </div>
+                        <div class="flex items-center justify-between text-[11px] text-slate-400 font-semibold">
+                            <span id="sidebar-rank" class="text-cyan-300">Pemula Digital</span>
+                            <span id="sidebar-percent">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        </aside>
+
+        <!-- Konten Utama -->
+        <main class="flex-1 lg:pl-76 flex flex-col min-h-screen">
+            <!-- Top Bar Informatif -->
+            <header class="bg-white/90 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30 px-5 sm:px-8 py-4 flex items-center justify-between shadow-xs">
+                <div class="flex items-center gap-2.5 text-sm text-slate-500">
+                    <span class="font-extrabold text-navy-900 text-base" id="topbar-title">Beranda Utama</span>
+                    <span class="hidden sm:inline text-slate-300 font-bold">/</span>
+                    <span class="hidden sm:inline text-xs font-semibold text-slate-600" id="topbar-subtitle">Media Pembelajaran Interaktif SMP</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="sound-toggle-btn" onclick="toggleSound()" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-navy-900 px-3.5 py-2 rounded-2xl text-xs font-extrabold transition shadow-xs" title="Aktifkan/Matikan Efek Suara">
+                        <i id="sound-icon" class="fa-solid fa-volume-high text-electric-500 text-sm"></i>
+                        <span class="hidden md:inline" id="sound-label">Suara ON</span>
+                    </button>
+                    <div class="flex items-center gap-2 bg-amber-50 border border-amber-200/90 text-amber-800 px-3.5 py-2 rounded-2xl text-xs font-black shadow-xs">
+                        <i class="fa-solid fa-bolt text-amber-500 text-sm"></i>
+                        <span id="header-xp">0 XP</span>
+                    </div>
+                    <button onclick="navigateTo('profil')" class="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-navy-900 px-3.5 py-2 rounded-2xl text-xs font-extrabold transition shadow-xs">
+                        <i class="fa-solid fa-medal text-electric-500 text-sm"></i>
+                        <span id="header-badges">0 Badge</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Container Halaman Dinamis -->
+            <div id="app-content" class="flex-1 p-5 sm:p-8 lg:p-10 max-w-6xl w-full mx-auto">
+                <!-- Konten dirender lewat JavaScript -->
+            </div>
+
+            <!-- Footer Ringkas -->
+            <footer class="border-t border-slate-200 bg-white py-5 px-6 text-center text-xs text-slate-500 mt-12 font-medium">
+                <p><strong>BINARA</strong> &bull; Media Pembelajaran Interaktif Informatika SMP Kelas VIII (Fase D) &bull; Dibuat untuk Belajar Seru & Bermakna</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- SCRIPT UTAMA APLIKASI BINARA -->
+    <script>
+        // ==========================================
+        // 0. EFEK SUARA INTERAKTIF (WEB AUDIO API)
+        // ==========================================
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        function playTone(type) {
+            if (!soundEnabled) return;
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                const now = audioCtx.currentTime;
+                if (type === 'switch') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(520, now);
+                    osc.frequency.exponentialRampToValueAtTime(780, now + 0.06);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                    osc.start(now);
+                    osc.stop(now + 0.06);
+                } else if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(659.25, now + 0.09); // E5
+                    osc.frequency.setValueAtTime(783.99, now + 0.18); // G5
+                    gain.gain.setValueAtTime(0.12, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+                    osc.start(now);
+                    osc.stop(now + 0.32);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(220, now);
+                    osc.frequency.linearRampToValueAtTime(160, now + 0.22);
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                    osc.start(now);
+                    osc.stop(now + 0.22);
+                }
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            const label = document.getElementById('sound-label');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-electric-500 text-sm';
+                label.textContent = 'Suara ON';
+                playTone('switch');
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-slate-400 text-sm';
+                label.textContent = 'Suara OFF';
+            }
+        }
+
+        // ==========================================
+        // 1. STATE MANAGEMENT & PENYIMPANAN LOKAL
+        // ==========================================
+        const STORAGE_KEY = 'binara_smp_progress_v2';
+        const EVAL_SESSION_KEY = 'binara_eval_temp_session';
+
+        const defaultState = {
+            studentName: 'Pelajar Informatika',
+            xp: 0,
+            completedMaterials: [],
+            verifiedMaterials: [],
+            lastMaterialId: 1,
+            labUsedCount: 0,
+            quizScores: { 1: null, 2: null, 3: null },
+            evaluationResult: null,
+            dailyChallengeCompleted: false,
+            lastActiveDate: new Date().toDateString()
+        };
+
+        let appState = loadState();
+        let currentRoute = 'beranda';
+
+        function loadState() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    const today = new Date().toDateString();
+                    if (parsed.lastActiveDate !== today) {
+                        parsed.dailyChallengeCompleted = false;
+                        parsed.lastActiveDate = today;
+                    }
+                    return { ...defaultState, ...parsed };
+                }
+            } catch (e) {}
+            return { ...defaultState };
+        }
+
+        function saveState() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+                updateGlobalUI();
+            } catch (e) {}
+        }
+
+        function addXP(amount, reason) {
+            appState.xp += amount;
+            saveState();
+            playTone('correct');
+            showToast(`+${amount} XP: ${reason}`, 'success');
+        }
+
+        function getDailyChallengeData() {
+            const now = new Date();
+            const seed = now.getFullYear() * 10000 + (now.getMonth() + 1) * 100 + now.getDate();
+            const targetDec = (seed % 27) + 5;
+            const targetBin = targetDec.toString(2);
+            const distractor1 = targetDec + 2;
+            const distractor2 = Math.max(1, targetDec - 3);
+            const options = [targetDec, distractor1, distractor2].sort((a, b) => a - b);
+            return { targetDec, targetBin, options };
+        }
+
+        // ==========================================
+        // 2. DATA MATERI PEMBELAJARAN (6 SUBBAB)
+        // ==========================================
+        const materialsData = [
+            {
+                id: 1,
+                title: 'Mengenal Sistem Bilangan',
+                subtitle: 'Konsep dasar bagaimana manusia dan komputer memahami angka',
+                icon: 'fa-brain',
+                duration: '4 Menit',
+                miniCheck: {
+                    question: 'Mengapa komputer menggunakan sistem bilangan biner (0 dan 1) dibanding desimal?',
+                    options: [
+                        'Karena komponen listrik komputer hanya mengenal kondisi menyala (ON) dan mati (OFF)',
+                        'Karena bilangan biner tidak membutuhkan daya listrik',
+                        'Karena angka 0 dan 1 lebih panjang daripada angka 0 sampai 9'
+                    ],
+                    answerIndex: 0
+                },
+                render: () => `
+                    <div class="space-y-6">
+                        <div class="bg-gradient-to-br from-navy-900 via-navy-800 to-indigo-950 text-white p-8 rounded-3xl relative overflow-hidden shadow-xl border border-slate-700">
+                            <div class="relative z-10">
+                                <span class="text-xs font-mono uppercase tracking-wider text-cyan-300 bg-cyan-400/20 px-3.5 py-1.5 rounded-full border border-cyan-400/30">Materi 1 &bull; Fondasi</span>
+                                <h2 class="text-3xl font-black mt-3">Apa itu Sistem Bilangan?</h2>
+                                <p class="text-slate-200 mt-3 text-base sm:text-lg leading-relaxed">
+                                    <strong>Sistem bilangan</strong> adalah cara atau aturan untuk menuliskan dan mewakili suatu nilai atau jumlah menggunakan simbol-simbol tertentu.
+                                </p>
+                            </div>
+                            <div class="absolute right-6 bottom-2 font-mono text-8xl font-black text-white/5 select-none">0123</div>
+                        </div>
+
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm interactive-card">
+                                <div class="w-14 h-14 rounded-2xl bg-blue-50 text-electric-600 flex items-center justify-center text-2xl mb-4 shadow-inner">
+                                    <i class="fa-solid fa-hands"></i>
+                                </div>
+                                <h3 class="text-xl font-extrabold text-navy-900 mb-2">Cara Manusia Memahami Angka</h3>
+                                <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                                    Sejak zaman dahulu, manusia menghitung benda menggunakan <strong>10 jari tangan</strong>. Karena itulah manusia terbiasa menggunakan sistem bilangan <strong>Desimal (Basis 10)</strong> yang terdiri dari angka <code>0, 1, 2, 3, 4, 5, 6, 7, 8, 9</code>.
+                                </p>
+                                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/80 text-xs text-slate-700 font-medium">
+                                    <strong>Contoh sehari-hari:</strong> Harga jajanan Rp5.000, umur 14 tahun, atau nilai ulangan Informatika 90.
+                                </div>
+                            </div>
+
+                            <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm interactive-card">
+                                <div class="w-14 h-14 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-2xl mb-4 shadow-inner">
+                                    <i class="fa-solid fa-microchip"></i>
+                                </div>
+                                <h3 class="text-xl font-extrabold text-navy-900 mb-2">Cara Komputer Memahami Angka</h3>
+                                <p class="text-slate-600 text-sm leading-relaxed mb-4">
+                                    Komputer tidak punya jari! Di dalam prosesor komputer terdapat miliaran sakelar elektronik super kecil (transistor) yang hanya mengenal dua kondisi: <strong>Ada arus listrik (1)</strong> atau <strong>Tidak ada arus listrik (0)</strong>. Inilah sistem bilangan <strong>Biner (Basis 2)</strong>.
+                                </p>
+                                <div class="bg-navy-900 text-cyan-300 p-4 rounded-2xl font-mono text-xs border border-cyan-500/30">
+                                    <strong>Fakta Seru:</strong> Semua foto, video TikTok, lagu, dan game di HP-mu disimpan di memori sebagai deretan angka <code>0</code> dan <code>1</code>!
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Mini Eksplorasi Interaktif -->
+                        <div class="bg-gradient-to-br from-blue-50 to-indigo-50/50 border border-blue-200/80 p-7 rounded-3xl">
+                            <h4 class="font-extrabold text-navy-900 flex items-center gap-2.5 mb-3 text-base">
+                                <i class="fa-solid fa-lightbulb text-amber-500 text-lg"></i>
+                                Uji Pemahaman Cepat: Klik untuk Membandingkan!
+                            </h4>
+                            <p class="text-sm text-slate-600 mb-4">Pilih salah satu hal di bawah ini untuk melihat bagaimana manusia dan komputer melihatnya:</p>
+                            <div class="flex flex-wrap gap-3 mb-4">
+                                <button onclick="showM1Compare('huruf')" class="px-5 py-2.5 rounded-2xl bg-white border border-blue-200 text-sm font-bold text-navy-900 hover:bg-electric-500 hover:text-white transition shadow-xs">Huruf "A"</button>
+                                <button onclick="showM1Compare('angka')" class="px-5 py-2.5 rounded-2xl bg-white border border-blue-200 text-sm font-bold text-navy-900 hover:bg-electric-500 hover:text-white transition shadow-xs">Angka 13</button>
+                                <button onclick="showM1Compare('lampu')" class="px-5 py-2.5 rounded-2xl bg-white border border-blue-200 text-sm font-bold text-navy-900 hover:bg-electric-500 hover:text-white transition shadow-xs">Status Lampu</button>
+                            </div>
+                            <div id="m1-compare-box" class="bg-white p-5 rounded-2xl border border-blue-100 text-sm text-slate-700 shadow-xs">
+                                Klik salah satu tombol di atas untuk melihat perbandingan terjemahan manusia vs komputer!
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 2,
+                title: 'Mengenal Bilangan Desimal',
+                subtitle: 'Sistem berbasis 10 dan konsep nilai tempat satuan, puluhan, ratusan',
+                icon: 'fa-list-ol',
+                duration: '5 Menit',
+                miniCheck: {
+                    question: 'Pada bilangan desimal 582, berapakah nilai tempat yang diwakili oleh angka 8?',
+                    options: ['80 (Puluhan)', '800 (Ratusan)', '8 (Satuan)'],
+                    answerIndex: 0
+                },
+                render: () => `
+                    <div class="space-y-6">
+                        <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+                            <span class="text-xs font-mono uppercase tracking-wider text-electric-600 bg-blue-50 px-3.5 py-1.5 rounded-full font-bold">Materi 2 &bull; Basis 10</span>
+                            <h2 class="text-3xl font-black text-navy-900 mt-3">Sistem Bilangan Desimal (Basis 10)</h2>
+                            <p class="text-slate-600 mt-3 text-base leading-relaxed">
+                                Bilangan desimal adalah sistem bilangan yang menggunakan <strong>10 simbol angka</strong>, yaitu <code>0, 1, 2, 3, 4, 5, 6, 7, 8, 9</code>. Disebut <strong>basis 10</strong> karena setiap perpindahan posisi angka ke sebelah kiri nilainya dikalikan dengan <strong>10</strong> (pangkat 10).
+                            </p>
+                        </div>
+
+                        <!-- Visualisasi Penguraian Angka 345 & Interaktif -->
+                        <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                <div>
+                                    <h3 class="text-xl font-extrabold text-navy-900">Visualisasi Nilai Tempat Desimal</h3>
+                                    <p class="text-xs text-slate-500 font-medium">Coba ubah angka 3 digit di bawah ini untuk melihat penguraian nilai tempatnya!</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <label class="text-xs font-extrabold text-slate-700">Ubah Angka:</label>
+                                    <input type="number" id="m2-decimal-input" min="100" max="999" value="345" oninput="updateM2Visual(this.value)" class="w-28 px-4 py-2.5 rounded-2xl border-2 border-electric-500 font-mono font-black text-center text-navy-900 text-lg focus:outline-none shadow-xs">
+                                </div>
+                            </div>
+
+                            <div id="m2-visual-container" class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+                                <!-- Diisi JS -->
+                            </div>
+
+                            <div id="m2-formula-box" class="bg-navy-900 text-white p-5 rounded-2xl font-mono text-sm sm:text-base text-center shadow-md">
+                                <!-- Diisi JS -->
+                            </div>
+                        </div>
+                    </div>
+                `,
+                onMount: () => updateM2Visual(345)
+            },
+            {
+                id: 3,
+                title: 'Mengenal Bilangan Biner',
+                subtitle: 'Sistem berbasis 2 dan analogi sakelar listrik ON / OFF',
+                icon: 'fa-toggle-on',
+                duration: '5 Menit',
+                miniCheck: {
+                    question: 'Jika 4 buah lampu sakelar memiliki status: Menyala - Mati - Mati - Menyala, bagaimanakah kode binernya?',
+                    options: ['1001', '0110', '1010'],
+                    answerIndex: 0
+                },
+                render: () => `
+                    <div class="space-y-6">
+                        <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+                            <span class="text-xs font-mono uppercase tracking-wider text-cyan-600 bg-cyan-50 px-3.5 py-1.5 rounded-full font-bold">Materi 3 &bull; Basis 2</span>
+                            <h2 class="text-3xl font-black text-navy-900 mt-3">Sistem Bilangan Biner (Basis 2)</h2>
+                            <p class="text-slate-600 mt-3 text-base leading-relaxed">
+                                Bilangan biner adalah sistem bilangan yang hanya mengenal <strong>2 simbol angka (bit)</strong>, yaitu <code>0</code> dan <code>1</code>. Kata "Biner" berasal dari kata <em>binary</em> yang artinya berpasangan atau dua.
+                            </p>
+                            <div class="grid sm:grid-cols-2 gap-5 mt-6">
+                                <div class="p-5 rounded-2xl bg-slate-100 border border-slate-200 flex items-center gap-4">
+                                    <div class="w-14 h-14 rounded-2xl bg-slate-800 text-white font-mono font-black text-2xl flex items-center justify-center shadow-sm">0</div>
+                                    <div>
+                                        <h4 class="font-extrabold text-navy-900 text-base">Angka 0 = OFF (Mati)</h4>
+                                        <p class="text-xs text-slate-600 mt-0.5">Tidak ada arus listrik, sakelar terbuka, kondisi False.</p>
+                                    </div>
+                                </div>
+                                <div class="p-5 rounded-2xl bg-cyan-50 border border-cyan-200 flex items-center gap-4">
+                                    <div class="w-14 h-14 rounded-2xl bg-electric-500 text-white font-mono font-black text-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">1</div>
+                                    <div>
+                                        <h4 class="font-extrabold text-navy-900 text-base">Angka 1 = ON (Menyala)</h4>
+                                        <p class="text-xs text-slate-600 mt-0.5">Ada arus listrik, sakelar tertutup, kondisi True.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Simulasi Sakelar Interaktif -->
+                        <div class="bg-navy-900 text-white p-7 rounded-3xl shadow-xl cyber-grid border border-slate-800">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
+                                <div>
+                                    <h3 class="text-xl font-bold text-white flex items-center gap-2.5">
+                                        <i class="fa-solid fa-bolt text-cyan-400"></i>
+                                        Simulasi Panel Sakelar Biner (4-Bit)
+                                    </h3>
+                                    <p class="text-xs text-slate-300 mt-0.5">Klik setiap sakelar di bawah untuk mengubah kondisi 0 dan 1 secara langsung!</p>
+                                </div>
+                                <div class="bg-navy-800 px-4 py-2 rounded-2xl border border-slate-700 font-mono text-xs text-cyan-400 font-bold">
+                                    Kode Biner: <span id="m3-binary-readout" class="font-extrabold text-white text-base ml-1">0101</span><sub>2</sub>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4" id="m3-switches-grid">
+                                <!-- Diisi JS -->
+                            </div>
+                        </div>
+                    </div>
+                `,
+                onMount: () => renderM3Switches()
+            },
+            {
+                id: 4,
+                title: 'Memahami Nilai Tempat Biner',
+                subtitle: 'Pola kelipatan pangkat dua (128, 64, 32, 16, 8, 4, 2, 1)',
+                icon: 'fa-table-cells',
+                duration: '6 Menit',
+                miniCheck: {
+                    question: 'Berapakah nilai tempat bilangan biner pada posisi ke-3 dari kanan (2³)?',
+                    options: ['8', '4', '16'],
+                    answerIndex: 0
+                },
+                render: () => `
+                    <div class="space-y-6">
+                        <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+                            <span class="text-xs font-mono uppercase tracking-wider text-electric-600 bg-blue-50 px-3.5 py-1.5 rounded-full font-bold">Materi 4 &bull; Pangkat Dua</span>
+                            <h2 class="text-3xl font-black text-navy-900 mt-3">Nilai Tempat pada Bilangan Biner</h2>
+                            <p class="text-slate-600 mt-3 text-base leading-relaxed">
+                                Jika pada bilangan desimal setiap langkah ke kiri dikali <strong>10</strong>, maka pada bilangan biner setiap langkah ke kiri dikali <strong>2</strong> (pangkat dua: 2<sup>0</sup>, 2<sup>1</sup>, 2<sup>2</sup>, dst. dari kanan ke kiri).
+                            </p>
+
+                            <!-- Tabel Nilai Tempat 8-Bit -->
+                            <div class="mt-6 overflow-x-auto">
+                                <table class="w-full text-center border-collapse rounded-2xl overflow-hidden text-xs sm:text-sm shadow-xs">
+                                    <thead>
+                                        <tr class="bg-navy-900 text-cyan-400 font-mono">
+                                            <th class="p-3.5 border border-slate-800 text-left">Posisi (Kanan ke Kiri)</th>
+                                            <th class="p-3.5 border border-slate-800">7</th>
+                                            <th class="p-3.5 border border-slate-800">6</th>
+                                            <th class="p-3.5 border border-slate-800">5</th>
+                                            <th class="p-3.5 border border-slate-800">4</th>
+                                            <th class="p-3.5 border border-slate-800">3</th>
+                                            <th class="p-3.5 border border-slate-800">2</th>
+                                            <th class="p-3.5 border border-slate-800">1</th>
+                                            <th class="p-3.5 border border-slate-800">0</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="font-mono">
+                                        <tr class="bg-slate-100 text-slate-700">
+                                            <td class="p-3.5 border border-slate-200 font-sans font-bold text-left">Pangkat Dua</td>
+                                            <td class="p-3.5 border border-slate-200">2<sup>7</sup></td>
+                                            <td class="p-3.5 border border-slate-200">2<sup>6</sup></td>
+                                            <td class="p-3.5 border border-slate-200">2<sup>5</sup></td>
+                                            <td class="p-3.5 border border-slate-200">2<sup>4</sup></td>
+                                            <td class="p-3.5 border border-slate-200">2<sup>3</sup></td>
+                                            <td class="p-3.5 border border-slate-200">2<sup>2</sup></td>
+                                            <td class="p-3.5 border border-slate-200">2<sup>1</sup></td>
+                                            <td class="p-3.5 border border-slate-200">2<sup>0</sup></td>
+                                        </tr>
+                                        <tr class="bg-blue-50/70 text-navy-900 font-extrabold text-base">
+                                            <td class="p-3.5 border border-slate-200 font-sans font-bold text-left text-sm">Nilai Tempat</td>
+                                            <td class="p-3.5 border border-slate-200 text-electric-600">128</td>
+                                            <td class="p-3.5 border border-slate-200 text-electric-600">64</td>
+                                            <td class="p-3.5 border border-slate-200 text-electric-600">32</td>
+                                            <td class="p-3.5 border border-slate-200 text-electric-600">16</td>
+                                            <td class="p-3.5 border border-slate-200 text-electric-600">8</td>
+                                            <td class="p-3.5 border border-slate-200 text-electric-600">4</td>
+                                            <td class="p-3.5 border border-slate-200 text-electric-600">2</td>
+                                            <td class="p-3.5 border border-slate-200 text-electric-600">1</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Bedah Contoh 101101 -->
+                        <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+                            <h3 class="text-xl font-extrabold text-navy-900 mb-2">Bedah Contoh: Bilangan Biner <span class="font-mono text-electric-600 bg-blue-50 px-2.5 py-1 rounded-xl">101101<sub>2</sub></span></h3>
+                            <p class="text-sm text-slate-600 mb-5 font-medium">Mari kita pasangkan 6 digit biner <code>101101</code> dari kanan ke kiri ke dalam tabel nilai tempat:</p>
+                            
+                            <div class="overflow-x-auto mb-5">
+                                <table class="w-full text-center border-collapse font-mono text-sm shadow-xs rounded-2xl overflow-hidden">
+                                    <thead>
+                                        <tr class="bg-slate-900 text-white">
+                                            <th class="p-3.5 border border-slate-800 text-left font-sans">Keterangan</th>
+                                            <th class="p-3.5 border border-slate-800">Posisi 5</th>
+                                            <th class="p-3.5 border border-slate-800">Posisi 4</th>
+                                            <th class="p-3.5 border border-slate-800">Posisi 3</th>
+                                            <th class="p-3.5 border border-slate-800">Posisi 2</th>
+                                            <th class="p-3.5 border border-slate-800">Posisi 1</th>
+                                            <th class="p-3.5 border border-slate-800">Posisi 0</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr class="bg-slate-50">
+                                            <td class="p-3.5 border border-slate-200 text-left font-sans font-bold">Nilai Tempat</td>
+                                            <td class="p-3.5 border border-slate-200 font-extrabold text-electric-600">32</td>
+                                            <td class="p-3.5 border border-slate-200 font-extrabold text-electric-600">16</td>
+                                            <td class="p-3.5 border border-slate-200 font-extrabold text-electric-600">8</td>
+                                            <td class="p-3.5 border border-slate-200 font-extrabold text-electric-600">4</td>
+                                            <td class="p-3.5 border border-slate-200 font-extrabold text-electric-600">2</td>
+                                            <td class="p-3.5 border border-slate-200 font-extrabold text-electric-600">1</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="p-3.5 border border-slate-200 text-left font-sans font-bold">Digit Biner</td>
+                                            <td class="p-3.5 border border-slate-200 bg-cyan-50 font-black text-navy-900 text-lg">1</td>
+                                            <td class="p-3.5 border border-slate-200 text-slate-400 font-bold">0</td>
+                                            <td class="p-3.5 border border-slate-200 bg-cyan-50 font-black text-navy-900 text-lg">1</td>
+                                            <td class="p-3.5 border border-slate-200 bg-cyan-50 font-black text-navy-900 text-lg">1</td>
+                                            <td class="p-3.5 border border-slate-200 text-slate-400 font-bold">0</td>
+                                            <td class="p-3.5 border border-slate-200 bg-cyan-50 font-black text-navy-900 text-lg">1</td>
+                                        </tr>
+                                        <tr class="bg-blue-50/50">
+                                            <td class="p-3.5 border border-slate-200 text-left font-sans font-bold">Perkalian</td>
+                                            <td class="p-3.5 border border-slate-200 text-xs font-bold">1 &times; 32 = <strong>32</strong></td>
+                                            <td class="p-3.5 border border-slate-200 text-xs text-slate-400">0 &times; 16 = 0</td>
+                                            <td class="p-3.5 border border-slate-200 text-xs font-bold">1 &times; 8 = <strong>8</strong></td>
+                                            <td class="p-3.5 border border-slate-200 text-xs font-bold">1 &times; 4 = <strong>4</strong></td>
+                                            <td class="p-3.5 border border-slate-200 text-xs text-slate-400">0 &times; 2 = 0</td>
+                                            <td class="p-3.5 border border-slate-200 text-xs font-bold">1 &times; 1 = <strong>1</strong></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div class="bg-navy-900 text-white p-5 rounded-2xl font-mono text-sm sm:text-base flex flex-col sm:flex-row items-center justify-between gap-3 shadow-md">
+                                <span>Penjumlahan Akhir: <span class="text-cyan-300 font-bold">32 + 0 + 8 + 4 + 0 + 1</span></span>
+                                <span class="bg-electric-500 px-4 py-2 rounded-xl font-extrabold text-white shadow-sm">= 45<sub>10</sub></span>
+                            </div>
+                        </div>
+                    </div>
+                `
+            },
+            {
+                id: 5,
+                title: 'Konversi Biner ke Desimal',
+                subtitle: 'Langkah demi langkah mengubah kode biner menjadi angka desimal',
+                icon: 'fa-arrow-right-arrow-left',
+                duration: '6 Menit',
+                miniCheck: {
+                    question: 'Berapakah hasil konversi bilangan biner 1010₂ ke dalam bilangan desimal?',
+                    options: ['10 (dari 8 + 2)', '12 (dari 8 + 4)', '5 (dari 4 + 1)'],
+                    answerIndex: 0
+                },
+                render: () => `
+                    <div class="space-y-6">
+                        <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+                            <span class="text-xs font-mono uppercase tracking-wider text-cyan-600 bg-cyan-50 px-3.5 py-1.5 rounded-full font-bold">Materi 5 &bull; Biner &rarr; Desimal</span>
+                            <h2 class="text-3xl font-black text-navy-900 mt-3">Langkah Konversi Biner ke Desimal</h2>
+                            <p class="text-slate-600 mt-3 text-base">
+                                Ikuti 5 tahap interaktif di bawah ini untuk mengubah bilangan biner <strong class="font-mono text-navy-900">101101<sub>2</sub></strong> menjadi bilangan desimal. Klik tombol tahap untuk melihat visualisasinya!
+                            </p>
+
+                            <!-- Stepper Interaktif Materi 5 -->
+                            <div class="mt-6 grid grid-cols-5 gap-2.5 mb-6" id="m5-step-buttons">
+                                <button onclick="setM5Step(1)" class="m5-btn py-3 px-2 rounded-2xl text-xs font-bold border transition shadow-xs">Tahap 1</button>
+                                <button onclick="setM5Step(2)" class="m5-btn py-3 px-2 rounded-2xl text-xs font-bold border transition shadow-xs">Tahap 2</button>
+                                <button onclick="setM5Step(3)" class="m5-btn py-3 px-2 rounded-2xl text-xs font-bold border transition shadow-xs">Tahap 3</button>
+                                <button onclick="setM5Step(4)" class="m5-btn py-3 px-2 rounded-2xl text-xs font-bold border transition shadow-xs">Tahap 4</button>
+                                <button onclick="setM5Step(5)" class="m5-btn py-3 px-2 rounded-2xl text-xs font-bold border transition shadow-xs">Tahap 5</button>
+                            </div>
+
+                            <div id="m5-stage-display" class="bg-navy-900 text-white p-7 rounded-3xl min-h-[260px] flex flex-col justify-between shadow-xl transition-all border border-slate-800">
+                                <!-- Diisi JS -->
+                            </div>
+
+                            <div class="flex justify-between mt-5">
+                                <button onclick="prevM5Step()" class="px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-extrabold transition">
+                                    <i class="fa-solid fa-chevron-left mr-1.5"></i> Sebelumnya
+                                </button>
+                                <button onclick="nextM5Step()" class="px-6 py-3 rounded-2xl bg-electric-500 hover:bg-electric-600 text-white text-xs font-extrabold transition shadow-md shadow-blue-500/20">
+                                    Tahap Berikutnya <i class="fa-solid fa-chevron-right ml-1.5"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `,
+                onMount: () => setM5Step(1)
+            },
+            {
+                id: 6,
+                title: 'Konversi Desimal ke Biner',
+                subtitle: 'Metode pembagian berulang dengan angka 2 dan membaca sisa',
+                icon: 'fa-divide',
+                duration: '7 Menit',
+                miniCheck: {
+                    question: 'Saat membagi angka desimal dengan 2 secara berulang, dari arah manakah sisa pembagian dibaca?',
+                    options: ['Dari paling bawah ke atas', 'Dari paling atas ke bawah', 'Dari tengah ke samping'],
+                    answerIndex: 0
+                },
+                render: () => `
+                    <div class="space-y-6">
+                        <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+                            <span class="text-xs font-mono uppercase tracking-wider text-indigo-600 bg-indigo-50 px-3.5 py-1.5 rounded-full font-bold">Materi 6 &bull; Desimal &rarr; Biner</span>
+                            <h2 class="text-3xl font-black text-navy-900 mt-3">Metode Pembagian Berulang dengan 2</h2>
+                            <p class="text-slate-600 mt-3 text-base leading-relaxed">
+                                Untuk mengubah bilangan desimal menjadi biner, bagi angka desimal tersebut dengan <strong>2</strong> secara berulang hingga hasil baginya <code>0</code>, lalu kumpulkan sisa pembagiannya.
+                            </p>
+                        </div>
+
+                        <!-- Simulasi Pembagian Bertahap 45 -> 101101 -->
+                        <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+                            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                                <div>
+                                    <h3 class="text-xl font-extrabold text-navy-900">Simulasi Bertahap: <span class="font-mono text-electric-600">45<sub>10</sub> = ...<sub>2</sub></span></h3>
+                                    <p class="text-xs text-slate-500 font-medium">Gunakan tombol kontrol untuk melihat proses pembagian baris demi baris.</p>
+                                </div>
+                                <div class="flex flex-wrap gap-2.5">
+                                    <button onclick="m6Control('prev')" class="px-4 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+                                        <i class="fa-solid fa-backward-step mr-1"></i> Sebelumnya
+                                    </button>
+                                    <button onclick="m6Control('next')" class="px-5 py-2.5 rounded-2xl bg-electric-500 hover:bg-electric-600 text-white text-xs font-bold transition shadow-md shadow-blue-500/20">
+                                        Berikutnya <i class="fa-solid fa-forward-step ml-1"></i>
+                                    </button>
+                                    <button onclick="m6Control('reset')" class="px-4 py-2.5 rounded-2xl bg-navy-900 hover:bg-navy-800 text-cyan-400 text-xs font-bold transition">
+                                        <i class="fa-solid fa-rotate-right mr-1"></i> Ulangi
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse font-mono text-sm rounded-2xl overflow-hidden shadow-xs">
+                                    <thead>
+                                        <tr class="bg-navy-900 text-white">
+                                            <th class="p-3.5">Langkah</th>
+                                            <th class="p-3.5">Operasi Pembagian</th>
+                                            <th class="p-3.5">Hasil Bagi</th>
+                                            <th class="p-3.5 text-cyan-400">Sisa Bagi (Bit)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="m6-division-tbody">
+                                        <!-- Diisi JS -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <div id="m6-result-banner" class="mt-6 p-5 rounded-2xl bg-slate-100 border border-slate-200 text-center font-mono text-sm">
+                                Klik <strong>"Berikutnya"</strong> untuk memulai pembagian 45 &divide; 2!
+                            </div>
+                        </div>
+                    </div>
+                `,
+                onMount: () => m6Control('reset')
+            }
+        ];
+
+        // ==========================================
+        // 3. BANK SOAL LATIHAN & EVALUASI
+        // ==========================================
+        const practiceBank = {
+            1: [
+                {
+                    q: 'Sistem bilangan yang hanya menggunakan dua simbol angka, yaitu 0 dan 1, disebut sistem bilangan...',
+                    options: ['Biner', 'Desimal', 'Oktal', 'Heksadesimal'],
+                    answer: 'Biner',
+                    explanation: 'Biner (basis 2) hanya menggunakan dua angka yaitu 0 dan 1.'
+                },
+                {
+                    q: 'Mengapa komputer menggunakan sistem bilangan biner untuk memproses data?',
+                    options: [
+                        'Karena komponen listrik komputer hanya mengenal dua kondisi: ON (1) dan OFF (0)',
+                        'Karena angka 0 dan 1 paling mudah ditulis oleh manusia',
+                        'Karena komputer memiliki 10 jari seperti manusia',
+                        'Karena bilangan biner tidak memerlukan memori'
+                    ],
+                    answer: 'Karena komponen listrik komputer hanya mengenal dua kondisi: ON (1) dan OFF (0)',
+                    explanation: 'Transistor di dalam prosesor komputer bekerja dengan sinyal listrik menyala (1) dan mati (0).'
+                },
+                {
+                    q: 'Berapa jumlah simbol angka yang digunakan dalam sistem bilangan desimal (basis 10)?',
+                    options: ['10 simbol (0 sampai 9)', '2 simbol (0 dan 1)', '9 simbol (1 sampai 9)', '8 simbol (0 sampai 7)'],
+                    answer: '10 simbol (0 sampai 9)',
+                    explanation: 'Sistem bilangan desimal memiliki 10 simbol angka unik: 0 sampai 9.'
+                },
+                {
+                    q: 'Pada bilangan desimal 728, angka 2 menempati nilai tempat...',
+                    options: ['Puluhan', 'Ratusan', 'Satuan', 'Ribuan'],
+                    answer: 'Puluhan',
+                    explanation: 'Dari kanan ke kiri: 8 satuan, 2 puluhan (20), dan 7 ratusan (700).'
+                },
+                {
+                    q: 'Dalam analogi sakelar listrik komputer, angka biner 1 melambangkan kondisi...',
+                    options: ['Sakelar menyala (ON) / ada arus listrik', 'Sakelar mati (OFF) / tidak ada arus', 'Komputer sedang rusak', 'Baterai habis'],
+                    answer: 'Sakelar menyala (ON) / ada arus listrik',
+                    explanation: 'Angka 1 mewakili keadaan ON (menyala/berarus listrik), sedangkan 0 mewakili OFF (mati).'
+                }
+            ],
+            2: [
+                {
+                    q: 'Berapakah nilai desimal dari bilangan biner 1010₂?',
+                    options: ['10', '12', '8', '5'],
+                    answer: '10',
+                    explanation: '1010₂ = (1×8) + (0×4) + (1×2) + (0×1) = 8 + 0 + 2 + 0 = 10.'
+                },
+                {
+                    q: 'Ubahlah bilangan desimal 13₁₀ ke dalam bentuk bilangan biner!',
+                    options: ['1101₂', '1011₂', '1110₂', '1001₂'],
+                    answer: '1101₂',
+                    explanation: '13 = 8 + 4 + 0 + 1, sehingga binernya adalah 1101₂.'
+                },
+                {
+                    q: 'Pada sistem bilangan biner 8-bit, berapakah nilai tempat pada posisi ke-4 dari kanan (2⁴)?',
+                    options: ['16', '8', '32', '4'],
+                    answer: '16',
+                    explanation: 'Urutan nilai tempat dari kanan (2⁰): 1, 2, 4, 8, 16 (2⁴).'
+                },
+                {
+                    q: 'Berapakah hasil konversi bilangan biner 1111₂ ke bilangan desimal?',
+                    options: ['15', '16', '14', '7'],
+                    answer: '15',
+                    explanation: '1111₂ = 8 + 4 + 2 + 1 = 15.'
+                },
+                {
+                    q: 'Jika bilangan desimal 20₁₀ diubah menjadi biner dengan dibagi 2 berulang, hasilnya adalah...',
+                    options: ['10100₂', '10010₂', '11000₂', '10101₂'],
+                    answer: '10100₂',
+                    explanation: '20 = 16 + 4, maka posisi 16 dan 4 bernilai 1: 10100₂.'
+                }
+            ],
+            3: [
+                {
+                    q: 'Berapakah hasil konversi bilangan biner 8-bit 11001010₂ ke dalam desimal?',
+                    options: ['202', '198', '210', '170'],
+                    answer: '202',
+                    explanation: '128 + 64 + 0 + 0 + 8 + 0 + 2 + 0 = 202.'
+                },
+                {
+                    q: 'Budi mengonversi 10110₂ menjadi desimal dengan cara: (1×16)+(0×8)+(1×4)+(1×2)+(0×1) = 24. Di manakah letak kesalahan Budi?',
+                    options: [
+                        'Hasil penjumlahan akhirnya salah, 16 + 4 + 2 seharusnya 22',
+                        'Nilai tempat paling kiri seharusnya 32',
+                        'Perkalian 0×8 seharusnya menghasilkan 8',
+                        'Tidak ada kesalahan, jawaban Budi sudah benar'
+                    ],
+                    answer: 'Hasil penjumlahan akhirnya salah, 16 + 4 + 2 seharusnya 22',
+                    explanation: '16 + 0 + 4 + 2 + 0 = 22, bukan 24.'
+                },
+                {
+                    q: 'Sebuah lampu pintar memiliki 4 sakelar biner bernilai tempat (8, 4, 2, 1). Agar lampu menyala dengan tingkat kecerahan bernilai desimal 11, kombinasi sakelar yang harus ditekan adalah...',
+                    options: ['ON - OFF - ON - ON (1011)', 'ON - ON - OFF - ON (1101)', 'OFF - ON - ON - ON (0111)', 'ON - OFF - OFF - ON (1001)'],
+                    answer: 'ON - OFF - ON - ON (1011)',
+                    explanation: 'Untuk mendapatkan 11, kita butuh 8 + 2 + 1 = 11, sehingga kombinasi binernya 1011.'
+                },
+                {
+                    q: 'Berapakah nilai desimal terbesar yang dapat diwakili oleh 8 digit bilangan biner (11111111₂)?',
+                    options: ['255', '256', '128', '512'],
+                    answer: '255',
+                    explanation: '128 + 64 + 32 + 16 + 8 + 4 + 2 + 1 = 255.'
+                },
+                {
+                    q: 'Siti membagi angka 26 dengan 2 secara berulang dan mendapat sisa dari atas ke bawah: 0, 1, 0, 1, 1. Apa bilangan biner yang benar untuk 26₁₀?',
+                    options: ['11010₂', '01011₂', '10110₂', '11001₂'],
+                    answer: '11010₂',
+                    explanation: 'Sisa pembagian dibaca dari bawah ke atas: 1, 1, 0, 1, 0 -> 11010₂ (16+8+2=26).'
+                }
+            ]
+        };
+
+        const evaluationQuestions = [
+            { id: 1, category: 'Konsep', q: 'Apa yang dimaksud dengan sistem bilangan biner?', options: ['Sistem bilangan berbasis 2 yang hanya menggunakan angka 0 dan 1', 'Sistem bilangan berbasis 10 yang menggunakan angka 0 sampai 9', 'Sistem perhitungan menggunakan jari tangan manusia', 'Sistem penulisan huruf kapital pada komputer'], answer: 'Sistem bilangan berbasis 2 yang hanya menggunakan angka 0 dan 1', explanation: 'Biner adalah sistem bilangan basis 2 dengan digit 0 dan 1.' },
+            { id: 2, category: 'Konsep', q: 'Setiap satu digit tunggal (0 atau 1) pada bilangan biner disebut dengan istilah...', options: ['Bit (Binary Digit)', 'Byte', 'Pixel', 'Hertz'], answer: 'Bit (Binary Digit)', explanation: 'Bit adalah singkatan dari Binary Digit, satuan terkecil data biner.' },
+            { id: 3, category: 'Konsep', q: 'Sistem bilangan desimal disebut sebagai sistem bilangan berbasis...', options: ['Basis 10', 'Basis 2', 'Basis 8', 'Basis 16'], answer: 'Basis 10', explanation: 'Desimal menggunakan 10 angka (0-9), sehingga disebut basis 10.' },
+            { id: 4, category: 'Konsep', q: 'Pada bilangan biner, bagaimana cara menentukan urutan nilai tempatnya?', options: ['Dimulai dari kanan ke kiri dengan pangkat 2 (1, 2, 4, 8, ...)', 'Dimulai dari kiri ke kanan dengan kelipatan 10', 'Semua posisi memiliki nilai tempat yang sama yaitu 2', 'Dimulai dari kanan ke kiri dengan kelipatan 5'], answer: 'Dimulai dari kanan ke kiri dengan pangkat 2 (1, 2, 4, 8, ...)', explanation: 'Nilai tempat biner dimulai dari 2⁰=1 di paling kanan, lalu dikali 2 ke kiri.' },
+            { id: 5, category: 'Konsep', q: 'Saat mengonversi bilangan desimal ke biner menggunakan metode pembagian 2 berulang, bagaimana cara membaca hasil akhirnya?', options: ['Membaca sisa pembagian dari bawah ke atas', 'Membaca sisa pembagian dari atas ke bawah', 'Menjumlahkan semua hasil bagi', 'Mengalikan semua sisa pembagian'], answer: 'Membaca sisa pembagian dari bawah ke atas', explanation: 'Sisa pembagian terakhir (paling bawah) menjadi bit paling kiri (MSB).' },
+            { id: 6, category: 'Biner ke Desimal', q: 'Berapakah nilai desimal dari bilangan biner 110₂?', options: ['6', '5', '3', '7'], answer: '6', explanation: '(1×4) + (1×2) + (0×1) = 4 + 2 + 0 = 6.' },
+            { id: 7, category: 'Biner ke Desimal', q: 'Ubahlah bilangan biner 1001₂ menjadi bilangan desimal!', options: ['9', '10', '5', '11'], answer: '9', explanation: '(1×8) + (0×4) + (0×2) + (1×1) = 8 + 1 = 9.' },
+            { id: 8, category: 'Biner ke Desimal', q: 'Bilangan biner 10111₂ setara dengan bilangan desimal...', options: ['23', '21', '25', '19'], answer: '23', explanation: '16 + 0 + 4 + 2 + 1 = 23.' },
+            { id: 9, category: 'Biner ke Desimal', q: 'Hasil konversi bilangan biner 100000₂ ke dalam sistem desimal adalah...', options: ['32', '16', '64', '10'], answer: '32', explanation: 'Angka 1 berada pada posisi ke-5 dari kanan (2⁵) = 32.' },
+            { id: 10, category: 'Biner ke Desimal', q: 'Berapakah nilai desimal dari bilangan biner 110110₂?', options: ['54', '52', '46', '58'], answer: '54', explanation: '32 + 16 + 0 + 4 + 2 + 0 = 54.' },
+            { id: 11, category: 'Desimal ke Biner', q: 'Bentuk bilangan biner dari angka desimal 7₁₀ adalah...', options: ['111₂', '101₂', '110₂', '100₂'], answer: '111₂', explanation: '7 = 4 + 2 + 1 -> 111₂.' },
+            { id: 12, category: 'Desimal ke Biner', q: 'Jika angka desimal 12₁₀ dikonversi ke biner, hasilnya adalah...', options: ['1100₂', '1010₂', '1110₂', '1001₂'], answer: '1100₂', explanation: '12 = 8 + 4 -> 1100₂.' },
+            { id: 13, category: 'Desimal ke Biner', q: 'Ubahlah bilangan desimal 19₁₀ menjadi bilangan biner!', options: ['10011₂', '10101₂', '11001₂', '10010₂'], answer: '10011₂', explanation: '19 = 16 + 2 + 1 -> 10011₂.' },
+            { id: 14, category: 'Desimal ke Biner', q: 'Hasil konversi bilangan desimal 37₁₀ ke bilangan biner adalah...', options: ['100101₂', '101001₂', '100111₂', '110101₂'], answer: '100101₂', explanation: '37 = 32 + 4 + 1 -> 100101₂.' },
+            { id: 15, category: 'Desimal ke Biner', q: 'Berapakah bentuk biner dari bilangan desimal 50₁₀?', options: ['110010₂', '110100₂', '101010₂', '111010₂'], answer: '110010₂', explanation: '50 = 32 + 16 + 2 -> 110010₂.' }
+        ];
+
+        // ==========================================
+        // 4. NAVIGASI & UI GLOBAL
+        // ==========================================
+        function navigateTo(route, param = null) {
+            currentRoute = route;
+            const navMenu = document.getElementById('nav-menu');
+            if (!navMenu.classList.contains('hidden') && window.innerWidth < 1024) {
+                navMenu.classList.add('hidden');
+            }
+
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                if (btn.dataset.nav === route) {
+                    btn.classList.add('bg-electric-500', 'text-white', 'shadow-lg', 'shadow-blue-500/30');
+                    btn.classList.remove('text-slate-300', 'hover:bg-navy-800', 'hover:text-white');
+                } else {
+                    btn.classList.remove('bg-electric-500', 'text-white', 'shadow-lg', 'shadow-blue-500/30');
+                    btn.classList.add('text-slate-300', 'hover:bg-navy-800', 'hover:text-white');
+                }
+            });
+
+            const container = document.getElementById('app-content');
+            container.innerHTML = '';
+            container.classList.remove('fade-in');
+            void container.offsetWidth;
+            container.classList.add('fade-in');
+
+            const topTitle = document.getElementById('topbar-title');
+            const topSub = document.getElementById('topbar-subtitle');
+
+            switch (route) {
+                case 'beranda':
+                    topTitle.textContent = 'Beranda Utama';
+                    topSub.textContent = 'Media Pembelajaran Interaktif SMP';
+                    renderBeranda(container);
+                    break;
+                case 'materi':
+                    topTitle.textContent = 'Materi Belajar';
+                    topSub.textContent = '6 Modul Terstruktur Biner & Desimal';
+                    renderMateri(container, param || appState.lastMaterialId);
+                    break;
+                case 'lab':
+                    topTitle.textContent = 'Lab Konversi';
+                    topSub.textContent = 'Simulator Visual Biner & Desimal';
+                    renderLabKonversi(container);
+                    break;
+                case 'latihan':
+                    topTitle.textContent = 'Latihan Soal';
+                    topSub.textContent = 'Tantangan Bertingkat (Pemula - Tantangan)';
+                    renderLatihan(container, param);
+                    break;
+                case 'evaluasi':
+                    topTitle.textContent = 'Evaluasi Akhir';
+                    topSub.textContent = 'Uji Kompetensi 15 Soal Sistem Bilangan';
+                    renderEvaluasi(container);
+                    break;
+                case 'profil':
+                    topTitle.textContent = 'Profil & Badge';
+                    topSub.textContent = 'Pencapaian, Badge, & Statistik Belajar';
+                    renderProfil(container);
+                    break;
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleMobileMenu() {
+            const navMenu = document.getElementById('nav-menu');
+            navMenu.classList.toggle('hidden');
+            navMenu.classList.toggle('flex');
+        }
+
+        function calculateOverallProgress() {
+            const matWeight = (appState.completedMaterials.length / 6) * 40;
+            const completedQuizzes = Object.values(appState.quizScores).filter(s => s !== null && s >= 60).length;
+            const quizWeight = (completedQuizzes / 3) * 30;
+            const evalWeight = appState.evaluationResult ? 30 : 0;
+            return Math.round(matWeight + quizWeight + evalWeight);
+        }
+
+        function getBadges() {
+            const completedQuizzes = Object.values(appState.quizScores).filter(s => s !== null && s >= 60).length;
+            return [
+                {
+                    id: 'penjelajah',
+                    name: 'Penjelajah Biner',
+                    desc: 'Menyelesaikan minimal 3 materi pembelajaran.',
+                    icon: 'fa-compass',
+                    color: 'from-blue-500 to-cyan-400',
+                    unlocked: appState.completedMaterials.length >= 3
+                },
+                {
+                    id: 'nilaitempat',
+                    name: 'Ahli Nilai Tempat',
+                    desc: 'Menyelesaikan seluruh 6 modul materi BINARA.',
+                    icon: 'fa-layer-group',
+                    color: 'from-indigo-500 to-purple-500',
+                    unlocked: appState.completedMaterials.length === 6
+                },
+                {
+                    id: 'masterkonversi',
+                    name: 'Master Konversi',
+                    desc: 'Lulus minimal 2 level Latihan Soal & mencoba Lab Konversi.',
+                    icon: 'fa-microchip',
+                    color: 'from-emerald-500 to-teal-400',
+                    unlocked: completedQuizzes >= 2 && appState.labUsedCount >= 1
+                },
+                {
+                    id: 'juarabinara',
+                    name: 'Juara BINARA',
+                    desc: 'Menyelesaikan Evaluasi Akhir dengan nilai minimal 80.',
+                    icon: 'fa-trophy',
+                    color: 'from-amber-400 to-orange-500',
+                    unlocked: appState.evaluationResult && appState.evaluationResult.score >= 80
+                }
+            ];
+        }
+
+        function updateGlobalUI() {
+            const progress = calculateOverallProgress();
+            const badges = getBadges().filter(b => b.unlocked).length;
+
+            document.getElementById('sidebar-xp').textContent = `${appState.xp} XP`;
+            document.getElementById('header-xp').textContent = `${appState.xp} XP`;
+            document.getElementById('header-badges').textContent = `${badges} Badge`;
+            document.getElementById('sidebar-progress-bar').style.width = `${progress}%`;
+            document.getElementById('sidebar-percent').textContent = `${progress}%`;
+
+            let rank = 'Pemula Digital';
+            if (appState.xp >= 500) rank = 'Arsitek Biner';
+            else if (appState.xp >= 250) rank = 'Teknisi Kode';
+            else if (appState.xp >= 100) rank = 'Penjelajah Bit';
+            document.getElementById('sidebar-rank').textContent = rank;
+
+            document.getElementById('nav-materi-badge').textContent = `${appState.completedMaterials.length}/6`;
+            const quizCount = Object.values(appState.quizScores).filter(s => s !== null).length;
+            document.getElementById('nav-latihan-badge').textContent = `${quizCount}/3`;
+            document.getElementById('nav-eval-badge').textContent = appState.evaluationResult ? `${appState.evaluationResult.score}` : '-';
+        }
+
+        // ==========================================
+        // 5. HALAMAN BERANDA
+        // ==========================================
+        function renderBeranda(container) {
+            const progress = calculateOverallProgress();
+            const hasStarted = appState.completedMaterials.length > 0 || appState.xp > 0;
+
+            container.innerHTML = `
+                <div class="space-y-8">
+                    <!-- Hero Banner Futuristik -->
+                    <div class="bg-gradient-to-br from-slate-950 via-navy-900 to-indigo-950 rounded-3xl p-7 sm:p-10 text-white relative overflow-hidden shadow-2xl border border-slate-800 cyber-grid">
+                        <div class="relative z-10 grid lg:grid-cols-12 gap-8 items-center">
+                            <div class="lg:col-span-7 space-y-5">
+                                <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-400/15 border border-cyan-400/30 text-cyan-300 text-xs font-bold">
+                                    <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></span>
+                                    Informatika SMP Kelas VIII &bull; Fase D
+                                </div>
+                                <h1 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
+                                    Kenali Bahasa di Balik <span class="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">Komputer!</span>
+                                </h1>
+                                <p class="text-slate-300 text-sm sm:text-base leading-relaxed max-w-xl font-medium">
+                                    Yuk, pelajari bagaimana komputer memahami angka melalui sistem bilangan biner dan desimal dengan visualisasi interaktif, simulator langsung, dan tantangan seru.
+                                </p>
+                                <div class="flex flex-wrap items-center gap-3.5 pt-2">
+                                    <button onclick="navigateTo('materi', 1)" class="px-7 py-4 rounded-2xl bg-gradient-to-r from-electric-500 to-cyan-500 hover:from-electric-600 hover:to-cyan-600 text-white font-bold text-sm shadow-xl shadow-cyan-500/30 transition transform hover:-translate-y-0.5 flex items-center gap-2.5">
+                                        <i class="fa-solid fa-rocket text-base"></i>
+                                        Mulai Belajar
+                                    </button>
+                                    ${hasStarted ? `
+                                        <button onclick="navigateTo('materi', ${appState.lastMaterialId})" class="px-6 py-4 rounded-2xl bg-navy-800 hover:bg-navy-700 border border-slate-700 text-cyan-300 font-bold text-sm transition flex items-center gap-2.5 shadow-md">
+                                            <i class="fa-solid fa-play"></i>
+                                            Lanjutkan (Materi ${appState.lastMaterialId})
+                                        </button>
+                                    ` : `
+                                        <button onclick="navigateTo('lab')" class="px-6 py-4 rounded-2xl bg-navy-800/80 hover:bg-navy-700 border border-slate-700 text-white font-bold text-sm transition flex items-center gap-2.5 shadow-md">
+                                            <i class="fa-solid fa-microchip text-cyan-400"></i>
+                                            Coba Lab Konversi
+                                        </button>
+                                    `}
+                                </div>
+                            </div>
+
+                            <!-- Ilustrasi Interaktif 0 dan 1 -->
+                            <div class="lg:col-span-5 flex justify-center">
+                                <div class="bg-slate-950/90 border border-cyan-500/40 rounded-3xl p-6 w-full max-w-sm shadow-2xl backdrop-blur-md">
+                                    <div class="flex items-center justify-between text-xs font-mono text-slate-400 mb-4 pb-2.5 border-b border-slate-800">
+                                        <span>BINARY_STREAM.SYS</span>
+                                        <span class="text-cyan-400 font-bold">8-BIT LIVE</span>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-3 font-mono text-center mb-4">
+                                        <div class="bg-electric-500/20 border border-electric-500 text-cyan-300 py-3.5 rounded-2xl font-black text-xl shadow-inner">0</div>
+                                        <div class="bg-cyan-500 text-slate-950 py-3.5 rounded-2xl font-black text-xl shadow-lg shadow-cyan-500/30">1</div>
+                                        <div class="bg-electric-500/20 border border-electric-500 text-cyan-300 py-3.5 rounded-2xl font-black text-xl">0</div>
+                                        <div class="bg-cyan-500 text-slate-950 py-3.5 rounded-2xl font-black text-xl shadow-lg shadow-cyan-500/30">1</div>
+                                        <div class="bg-cyan-500 text-slate-950 py-3.5 rounded-2xl font-black text-xl shadow-lg shadow-cyan-500/30">1</div>
+                                        <div class="bg-electric-500/20 border border-electric-500 text-cyan-300 py-3.5 rounded-2xl font-black text-xl">0</div>
+                                        <div class="bg-cyan-500 text-slate-950 py-3.5 rounded-2xl font-black text-xl shadow-lg shadow-cyan-500/30">1</div>
+                                        <div class="bg-electric-500/20 border border-electric-500 text-cyan-300 py-3.5 rounded-2xl font-black text-xl">0</div>
+                                    </div>
+                                    <div class="bg-navy-900 rounded-2xl p-3.5 flex items-center justify-between text-xs font-mono border border-slate-800">
+                                        <span class="text-slate-400 font-medium">Desimal Terbaca:</span>
+                                        <span class="text-cyan-400 font-bold text-base">01011010<sub>2</sub> = 90<sub>10</sub></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bar Progres & Tantangan Harian -->
+                    <div class="grid lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-2">
+                                    <h2 class="font-black text-navy-900 text-xl">Progres Pembelajaran Kamu</h2>
+                                    <span class="font-mono font-black text-electric-600 text-xl">${progress}%</span>
+                                </div>
+                                <p class="text-xs sm:text-sm text-slate-500 mb-5 font-medium">
+                                    ${progress === 100 ? 'Luar biasa! Kamu telah menuntaskan seluruh perjalanan belajar BINARA.' : 'Selesaikan semua materi, latihan soal, dan evaluasi akhir untuk meraih predikat Juara BINARA!'}
+                                </p>
+                            </div>
+                            <div>
+                                <div class="w-full bg-slate-100 rounded-full h-4 overflow-hidden p-0.5 border border-slate-200 shadow-inner">
+                                    <div class="bg-gradient-to-r from-electric-500 to-cyan-400 h-full rounded-full transition-all duration-700 shadow-xs" style="width: ${progress}%"></div>
+                                </div>
+                                <div class="grid grid-cols-3 gap-3 mt-5 text-center text-xs">
+                                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                                        <span class="block text-slate-400 font-semibold mb-1">Materi Selesai</span>
+                                        <strong class="text-navy-900 font-mono text-base font-bold">${appState.completedMaterials.length} / 6</strong>
+                                    </div>
+                                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                                        <span class="block text-slate-400 font-semibold mb-1">Latihan Lulus</span>
+                                        <strong class="text-navy-900 font-mono text-base font-bold">${Object.values(appState.quizScores).filter(s => s !== null && s >= 60).length} / 3</strong>
+                                    </div>
+                                    <div class="bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                                        <span class="block text-slate-400 font-semibold mb-1">Nilai Evaluasi</span>
+                                        <strong class="text-navy-900 font-mono text-base font-bold">${appState.evaluationResult ? appState.evaluationResult.score + '/100' : 'Belum'}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tantangan Harian -->
+                        <div class="bg-gradient-to-br from-blue-600 to-navy-900 text-white p-7 rounded-3xl shadow-lg flex flex-col justify-between border border-blue-500/30">
+                            <div>
+                                <div class="flex items-center justify-between mb-4">
+                                    <span class="text-xs font-black uppercase tracking-wider bg-white/20 px-3 py-1 rounded-xl text-cyan-300">
+                                        <i class="fa-solid fa-fire mr-1.5"></i> Tantangan Harian
+                                    </span>
+                                    <span class="font-mono text-xs font-bold text-amber-300 bg-amber-500/20 px-2.5 py-1 rounded-xl">+30 XP</span>
+                                </div>
+                                <h3 class="font-extrabold text-base mb-1">Tebak Cepat Biner!</h3>
+                                <p class="text-xs text-blue-100 mb-5 leading-relaxed">Berapakah nilai desimal dari bilangan biner <strong class="font-mono text-white bg-white/15 px-2 py-0.5 rounded-lg">1101<sub>2</sub></strong>?</p>
+                            </div>
+                            <div id="daily-challenge-area">
+                                ${appState.dailyChallengeCompleted ? `
+                                    <div class="bg-emerald-500/25 border border-emerald-400/50 rounded-2xl p-3.5 text-xs text-emerald-200 flex items-center gap-2.5 font-bold">
+                                        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+                                        <span>Tantangan hari ini selesai! (1101₂ = 13)</span>
+                                    </div>
+                                ` : `
+                                    <div class="grid grid-cols-3 gap-2.5">
+                                        <button onclick="checkDailyChallenge(11)" class="py-2.5 rounded-xl bg-white/10 hover:bg-white/25 font-mono font-bold text-sm transition shadow-xs">11</button>
+                                        <button onclick="checkDailyChallenge(13)" class="py-2.5 rounded-xl bg-white/10 hover:bg-white/25 font-mono font-bold text-sm transition shadow-xs">13</button>
+                                        <button onclick="checkDailyChallenge(15)" class="py-2.5 rounded-xl bg-white/10 hover:bg-white/25 font-mono font-bold text-sm transition shadow-xs">15</button>
+                                    </div>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4 Aktivitas Utama -->
+                    <div>
+                        <h2 class="text-xl font-black text-navy-900 mb-5">Empat Aktivitas Belajar Utama</h2>
+                        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div onclick="navigateTo('materi')" class="group cursor-pointer bg-white p-7 rounded-3xl border border-slate-200/80 hover:border-electric-500 shadow-sm hover:shadow-xl transition-all interactive-card flex flex-col justify-between">
+                                <div>
+                                    <div class="w-14 h-14 rounded-2xl bg-blue-50 group-hover:bg-electric-500 text-electric-500 group-hover:text-white flex items-center justify-center text-2xl mb-5 transition shadow-inner">
+                                        <i class="fa-solid fa-book-open"></i>
+                                    </div>
+                                    <span class="text-xs font-black uppercase tracking-wider text-electric-600 bg-blue-50 px-3 py-1 rounded-full">Langkah 1</span>
+                                    <h3 class="text-lg font-extrabold text-navy-900 mt-2.5 mb-2">Pelajari Materi</h3>
+                                    <p class="text-xs text-slate-500 leading-relaxed font-medium">6 modul terstruktur mulai dari konsep dasar hingga langkah konversi biner & desimal.</p>
+                                </div>
+                                <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-electric-600">
+                                    <span>${appState.completedMaterials.length}/6 Selesai</span>
+                                    <i class="fa-solid fa-arrow-right group-hover:translate-x-1.5 transition"></i>
+                                </div>
+                            </div>
+
+                            <div onclick="navigateTo('lab')" class="group cursor-pointer bg-white p-7 rounded-3xl border border-slate-200/80 hover:border-cyan-500 shadow-sm hover:shadow-xl transition-all interactive-card flex flex-col justify-between">
+                                <div>
+                                    <div class="w-14 h-14 rounded-2xl bg-cyan-50 group-hover:bg-cyan-500 text-cyan-600 group-hover:text-white flex items-center justify-center text-2xl mb-5 transition shadow-inner">
+                                        <i class="fa-solid fa-microchip"></i>
+                                    </div>
+                                    <span class="text-xs font-black uppercase tracking-wider text-cyan-600 bg-cyan-50 px-3 py-1 rounded-full">Langkah 2</span>
+                                    <h3 class="text-lg font-extrabold text-navy-900 mt-2.5 mb-2">Simulasi Konversi</h3>
+                                    <p class="text-xs text-slate-500 leading-relaxed font-medium">Eksplorasi langsung di Lab Konversi 8-bit/16-bit dan pembagian bertahap.</p>
+                                </div>
+                                <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-cyan-600">
+                                    <span>Buka Lab Konversi</span>
+                                    <i class="fa-solid fa-arrow-right group-hover:translate-x-1.5 transition"></i>
+                                </div>
+                            </div>
+
+                            <div onclick="navigateTo('latihan')" class="group cursor-pointer bg-white p-7 rounded-3xl border border-slate-200/80 hover:border-indigo-500 shadow-sm hover:shadow-xl transition-all interactive-card flex flex-col justify-between">
+                                <div>
+                                    <div class="w-14 h-14 rounded-2xl bg-indigo-50 group-hover:bg-indigo-500 text-indigo-600 group-hover:text-white flex items-center justify-center text-2xl mb-5 transition shadow-inner">
+                                        <i class="fa-solid fa-gamepad"></i>
+                                    </div>
+                                    <span class="text-xs font-black uppercase tracking-wider text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full">Langkah 3</span>
+                                    <h3 class="text-lg font-extrabold text-navy-900 mt-2.5 mb-2">Latihan Soal</h3>
+                                    <p class="text-xs text-slate-500 leading-relaxed font-medium">Uji ketangkasanmu pada Level Pemula, Menengah, dan Tantangan berhadiah XP.</p>
+                                </div>
+                                <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-indigo-600">
+                                    <span>3 Level Tersedia</span>
+                                    <i class="fa-solid fa-arrow-right group-hover:translate-x-1.5 transition"></i>
+                                </div>
+                            </div>
+
+                            <div onclick="navigateTo('evaluasi')" class="group cursor-pointer bg-white p-7 rounded-3xl border border-slate-200/80 hover:border-amber-500 shadow-sm hover:shadow-xl transition-all interactive-card flex flex-col justify-between">
+                                <div>
+                                    <div class="w-14 h-14 rounded-2xl bg-amber-50 group-hover:bg-amber-500 text-amber-600 group-hover:text-white flex items-center justify-center text-2xl mb-5 transition shadow-inner">
+                                        <i class="fa-solid fa-award"></i>
+                                    </div>
+                                    <span class="text-xs font-black uppercase tracking-wider text-amber-600 bg-amber-50 px-3 py-1 rounded-full">Langkah 4</span>
+                                    <h3 class="text-lg font-extrabold text-navy-900 mt-2.5 mb-2">Evaluasi</h3>
+                                    <p class="text-xs text-slate-500 leading-relaxed font-medium">15 soal evaluasi komprehensif lengkap dengan rapor nilai akhir dan pembahasan.</p>
+                                </div>
+                                <div class="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-amber-600">
+                                    <span>${appState.evaluationResult ? 'Skor: ' + appState.evaluationResult.score : 'Mulai Ujian'}</span>
+                                    <i class="fa-solid fa-arrow-right group-hover:translate-x-1.5 transition"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function checkDailyChallenge(val) {
+            const daily = getDailyChallengeData();
+            if (val === daily.targetDec) {
+                appState.dailyChallengeCompleted = true;
+                addXP(30, 'Menjawab Tantangan Harian dengan benar!');
+                renderBeranda(document.getElementById('app-content'));
+            } else {
+                playTone('wrong');
+                showToast(`Kurang tepat! Coba hitung kembali nilai tempat dari ${daily.targetBin}₂.`, 'error');
+            }
+        }
+
+        // ==========================================
+        // 6. HALAMAN MATERI PEMBELAJARAN
+        // ==========================================
+        function renderMateri(container, matId = 1) {
+            appState.lastMaterialId = matId;
+            saveState();
+
+            const currentMat = materialsData.find(m => m.id === matId) || materialsData[0];
+            const isCompleted = appState.completedMaterials.includes(currentMat.id);
+            const isVerified = isCompleted || (appState.verifiedMaterials && appState.verifiedMaterials.includes(currentMat.id));
+
+            container.innerHTML = `
+                <div class="grid lg:grid-cols-12 gap-6">
+                    <div class="lg:col-span-4 space-y-3">
+                        <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm">
+                            <h3 class="font-extrabold text-navy-900 text-sm mb-4 px-1 flex items-center justify-between">
+                                <span>Daftar Modul Materi</span>
+                                <span class="font-mono text-xs text-electric-600 bg-blue-50 px-2.5 py-1 rounded-xl font-bold">${appState.completedMaterials.length}/6</span>
+                            </h3>
+                            <div class="space-y-2">
+                                ${materialsData.map(m => {
+                                    const active = m.id === currentMat.id;
+                                    const done = appState.completedMaterials.includes(m.id);
+                                    return `
+                                        <button onclick="renderMateri(document.getElementById('app-content'), ${m.id})" 
+                                            class="w-full text-left p-3.5 rounded-2xl transition flex items-center gap-3.5 border ${active ? 'bg-navy-900 text-white border-navy-900 shadow-md' : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-transparent'}">
+                                            <div class="w-8 h-8 rounded-xl flex items-center justify-center text-xs font-bold shrink-0 ${done ? 'bg-emerald-500 text-white' : (active ? 'bg-cyan-400 text-navy-950' : 'bg-white text-slate-500 border border-slate-200')}">
+                                                ${done ? '<i class="fa-solid fa-check"></i>' : m.id}
+                                            </div>
+                                            <div class="flex-1 min-w-0">
+                                                <div class="text-xs font-bold truncate">${m.title}</div>
+                                                <div class="text-[11px] ${active ? 'text-cyan-300' : 'text-slate-400'} mt-0.5 font-medium">${m.duration}</div>
+                                            </div>
+                                        </button>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-8 space-y-6">
+                        <div class="fade-in">
+                            ${currentMat.render()}
+                        </div>
+
+                        <!-- Mini-Cek Pemahaman -->
+                        <div class="bg-white p-7 rounded-3xl border-2 ${isVerified ? 'border-emerald-200 bg-emerald-50/20' : 'border-electric-500/30'} shadow-sm space-y-5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs font-black uppercase tracking-wider ${isVerified ? 'text-emerald-600' : 'text-electric-600'} flex items-center gap-2">
+                                    <i class="fa-solid ${isVerified ? 'fa-circle-check text-base' : 'fa-clipboard-question text-base'}"></i>
+                                    Mini-Cek Pemahaman Materi ${currentMat.id}
+                                </span>
+                                <span class="text-[11px] font-bold text-slate-400">${isVerified ? 'Terverifikasi' : 'Wajib dijawab untuk klaim XP'}</span>
+                            </div>
+                            <p class="text-sm sm:text-base font-extrabold text-navy-900 leading-relaxed">${currentMat.miniCheck.question}</p>
+                            <div class="grid sm:grid-cols-3 gap-3">
+                                ${currentMat.miniCheck.options.map((opt, idx) => {
+                                    const isCorrectOpt = idx === currentMat.miniCheck.answerIndex;
+                                    let btnCls = 'bg-slate-50 hover:bg-blue-50 border-slate-200 text-slate-700';
+                                    if (isVerified && isCorrectOpt) {
+                                        btnCls = 'bg-emerald-500 text-white border-emerald-500 font-bold shadow-sm';
+                                    }
+                                    return `
+                                        <button onclick="verifyMiniCheck(${currentMat.id}, ${idx})" ${isVerified ? 'disabled' : ''} class="p-3.5 rounded-2xl border text-left text-xs font-semibold transition ${btnCls}">
+                                            ${opt}
+                                        </button>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Kontrol Selesai & Navigasi -->
+                        <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <button onclick="markMaterialComplete(${currentMat.id})" ${!isVerified ? 'disabled' : ''}
+                                class="w-full sm:w-auto px-6 py-3.5 rounded-2xl font-extrabold text-sm transition flex items-center justify-center gap-2.5 ${!isVerified ? 'bg-slate-100 text-slate-400 cursor-not-allowed' : (isCompleted ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/20')}">
+                                <i class="fa-solid ${isCompleted ? 'fa-circle-check' : (!isVerified ? 'fa-lock' : 'fa-check')}"></i>
+                                ${isCompleted ? 'Materi Selesai' : (!isVerified ? 'Jawab Mini-Cek Dulu' : 'Tandai Selesai (+25 XP)')}
+                            </button>
+
+                            <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                                ${currentMat.id > 1 ? `
+                                    <button onclick="renderMateri(document.getElementById('app-content'), ${currentMat.id - 1})" class="px-5 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">
+                                        <i class="fa-solid fa-arrow-left mr-1.5"></i> Materi ${currentMat.id - 1}
+                                    </button>
+                                ` : ''}
+                                ${currentMat.id < 6 ? `
+                                    <button onclick="completeAndNext(${currentMat.id})" class="px-5 py-3 rounded-2xl bg-electric-500 hover:bg-electric-600 text-white text-xs font-bold transition shadow-md shadow-blue-500/20">
+                                        Materi ${currentMat.id + 1} <i class="fa-solid fa-arrow-right ml-1.5"></i>
+                                    </button>
+                                ` : `
+                                    <button onclick="navigateTo('lab')" class="px-5 py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-600 text-navy-950 text-xs font-black transition shadow-md">
+                                        Lanjut ke Lab Konversi <i class="fa-solid fa-microchip ml-1.5"></i>
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            if (currentMat.onMount) currentMat.onMount();
+        }
+
+        function verifyMiniCheck(matId, chosenIdx) {
+            const mat = materialsData.find(m => m.id === matId);
+            if (!mat) return;
+            if (chosenIdx === mat.miniCheck.answerIndex) {
+                if (!appState.verifiedMaterials) appState.verifiedMaterials = [];
+                if (!appState.verifiedMaterials.includes(matId)) appState.verifiedMaterials.push(matId);
+                playTone('correct');
+                showToast('Tepat sekali! Tombol selesai materi kini terbuka.', 'success');
+                saveState();
+                renderMateri(document.getElementById('app-content'), matId);
+            } else {
+                playTone('wrong');
+                showToast('Belum tepat, coba baca kembali ringkasan di atas!', 'error');
+            }
+        }
+
+        function markMaterialComplete(id) {
+            if (!appState.verifiedMaterials.includes(id) && !appState.completedMaterials.includes(id)) {
+                showToast('Jawab pertanyaan Mini-Cek Pemahaman di atas terlebih dahulu!', 'error');
+                return;
+            }
+            if (!appState.completedMaterials.includes(id)) {
+                appState.completedMaterials.push(id);
+                addXP(25, `Menyelesaikan Materi ${id}`);
+                renderMateri(document.getElementById('app-content'), id);
+            } else {
+                showToast('Materi ini sudah kamu tandai selesai.', 'info');
+            }
+        }
+
+        function completeAndNext(id) {
+            if ((appState.verifiedMaterials.includes(id) || appState.completedMaterials.includes(id)) && !appState.completedMaterials.includes(id)) {
+                appState.completedMaterials.push(id);
+                addXP(25, `Menyelesaikan Materi ${id}`);
+            }
+            renderMateri(document.getElementById('app-content'), id + 1);
+        }
+
+        // Script interaktif subbab
+        function showM1Compare(type) {
+            const box = document.getElementById('m1-compare-box');
+            const data = {
+                huruf: '<strong>Huruf "A":</strong> Manusia membacanya sebagai huruf pertama abjad. Komputer menerjemahkannya menjadi kode biner 8-bit: <code class="bg-slate-100 px-2 py-0.5 rounded font-mono text-electric-600 font-bold">01000001</code> (angka 65 dalam standar ASCII).',
+                angka: '<strong>Angka 13:</strong> Manusia membacanya sebagai bilangan desimal tiga belas. Komputer menyimpannya sebagai sinyal listrik ON-ON-OFF-ON atau <code class="bg-slate-100 px-2 py-0.5 rounded font-mono text-electric-600 font-bold">1101</code>.',
+                lampu: '<strong>Status Lampu:</strong> Manusia melihat lampu ruang kelas menyala atau padam. Bagi sistem kontrol komputer, lampu padam = <code class="bg-slate-100 px-2 py-0.5 rounded font-mono text-electric-600 font-bold">0</code> dan lampu menyala = <code class="bg-slate-100 px-2 py-0.5 rounded font-mono text-electric-600 font-bold">1</code>.'
+            };
+            box.innerHTML = data[type];
+        }
+
+        function updateM2Visual(val) {
+            let num = parseInt(val, 10);
+            if (isNaN(num) || num < 0) num = 0;
+            if (num > 999) num = 999;
+            const str = String(num).padStart(3, '0');
+            const r = parseInt(str[0], 10);
+            const p = parseInt(str[1], 10);
+            const s = parseInt(str[2], 10);
+
+            const visual = document.getElementById('m2-visual-container');
+            const formula = document.getElementById('m2-formula-box');
+            if (!visual || !formula) return;
+
+            visual.innerHTML = `
+                <div class="p-5 rounded-2xl bg-blue-50/80 border border-blue-200 text-center shadow-xs">
+                    <span class="text-xs font-extrabold uppercase text-electric-600">Ratusan (10<sup>2</sup> = 100)</span>
+                    <div class="text-4xl font-mono font-black text-navy-900 my-2.5">${r}</div>
+                    <div class="text-xs text-slate-700 font-mono font-semibold">${r} &times; 100 = <strong>${r * 100}</strong></div>
+                </div>
+                <div class="p-5 rounded-2xl bg-cyan-50/80 border border-cyan-200 text-center shadow-xs">
+                    <span class="text-xs font-extrabold uppercase text-cyan-700">Puluhan (10<sup>1</sup> = 10)</span>
+                    <div class="text-4xl font-mono font-black text-navy-900 my-2.5">${p}</div>
+                    <div class="text-xs text-slate-700 font-mono font-semibold">${p} &times; 10 = <strong>${p * 10}</strong></div>
+                </div>
+                <div class="p-5 rounded-2xl bg-indigo-50/80 border border-indigo-200 text-center shadow-xs">
+                    <span class="text-xs font-extrabold uppercase text-indigo-600">Satuan (10<sup>0</sup> = 1)</span>
+                    <div class="text-4xl font-mono font-black text-navy-900 my-2.5">${s}</div>
+                    <div class="text-xs text-slate-700 font-mono font-semibold">${s} &times; 1 = <strong>${s * 1}</strong></div>
+                </div>
+            `;
+            formula.innerHTML = `Penguraian Nilai: <span class="text-cyan-300">${r * 100} + ${p * 10} + ${s}</span> = <span class="font-extrabold text-white">${num}<sub>10</sub></span>`;
+        }
+
+        let m3Bits = [0, 1, 0, 1];
+        function renderM3Switches() {
+            const grid = document.getElementById('m3-switches-grid');
+            const readout = document.getElementById('m3-binary-readout');
+            if (!grid) return;
+
+            readout.textContent = m3Bits.join('');
+            grid.innerHTML = m3Bits.map((bit, idx) => `
+                <button onclick="toggleM3Switch(${idx})" class="bit-switch p-5 rounded-2xl border-2 flex flex-col items-center justify-center gap-2.5 transition ${bit === 1 ? 'bg-electric-500/20 border-cyan-400 shadow-lg shadow-cyan-500/20' : 'bg-navy-800 border-slate-700'}">
+                    <div class="w-12 h-12 rounded-full flex items-center justify-center text-xl ${bit === 1 ? 'bg-cyan-400 text-navy-950 shadow-md shadow-cyan-400/50' : 'bg-slate-950 text-slate-500'}">
+                        <i class="fa-solid fa-lightbulb"></i>
+                    </div>
+                    <span class="font-mono text-2xl font-black ${bit === 1 ? 'text-white' : 'text-slate-400'}">${bit}</span>
+                    <span class="text-[11px] font-black uppercase tracking-wider ${bit === 1 ? 'text-cyan-300' : 'text-slate-500'}">${bit === 1 ? 'ON (Menyala)' : 'OFF (Mati)'}</span>
+                </button>
+            `).join('');
+        }
+
+        function toggleM3Switch(idx) {
+            playTone('switch');
+            m3Bits[idx] = m3Bits[idx] === 1 ? 0 : 1;
+            renderM3Switches();
+        }
+
+        let m5CurrentStep = 1;
+        function setM5Step(step) {
+            m5CurrentStep = step;
+            document.querySelectorAll('.m5-btn').forEach((btn, i) => {
+                if (i + 1 === step) {
+                    btn.className = 'm5-btn py-3 px-2 rounded-2xl text-xs font-bold border bg-electric-500 text-white border-electric-500 shadow-md transition';
+                } else if (i + 1 < step) {
+                    btn.className = 'm5-btn py-3 px-2 rounded-2xl text-xs font-bold border bg-blue-50 text-electric-600 border-blue-200 transition';
+                } else {
+                    btn.className = 'm5-btn py-3 px-2 rounded-2xl text-xs font-bold border bg-slate-50 text-slate-500 border-slate-200 transition';
+                }
+            });
+
+            const display = document.getElementById('m5-stage-display');
+            if (!display) return;
+
+            const stages = {
+                1: {
+                    title: 'Tahap 1: Tuliskan Bilangan Biner',
+                    desc: 'Pisahkan setiap digit bilangan biner yang akan dikonversi.',
+                    visual: `<div class="flex justify-center gap-3 font-mono text-2xl sm:text-3xl font-black my-4">${['1','0','1','1','0','1'].map(d => `<span class="w-12 h-14 rounded-2xl bg-slate-800 border border-cyan-500/40 flex items-center justify-center text-cyan-300 shadow-inner">${d}</span>`).join('')}</div>`
+                },
+                2: {
+                    title: 'Tahap 2: Tentukan Nilai Tempat (Kanan ke Kiri)',
+                    desc: 'Mulai dari digit paling kanan dengan nilai 1, lalu kalikan 2 setiap bergeser ke kiri.',
+                    visual: `<div class="grid grid-cols-6 gap-2.5 font-mono text-center my-3">${[['1',32],['0',16],['1',8],['1',4],['0',2],['1',1]].map(([d, w]) => `<div class="bg-slate-800 p-3 rounded-2xl border border-slate-700"><div class="text-xs text-cyan-400 font-bold mb-1">${w}</div><div class="text-xl font-black text-white">${d}</div></div>`).join('')}</div>`
+                },
+                3: {
+                    title: 'Tahap 3: Kalikan Digit Biner dengan Nilai Tempat',
+                    desc: 'Digit 1 mempertahankan nilai tempatnya, digit 0 menghasilkan nilai 0.',
+                    visual: `<div class="grid grid-cols-3 sm:grid-cols-6 gap-2 font-mono text-center text-xs my-3">${[['1',32,32],['0',16,0],['1',8,8],['1',4,4],['0',2,0],['1',1,1]].map(([d, w, res]) => `<div class="p-3 rounded-2xl border ${d==='1' ? 'bg-electric-500/25 border-cyan-400' : 'bg-slate-800/50 border-slate-800 text-slate-400'}"><div>${d} &times; ${w}</div><div class="text-base font-bold mt-1 ${d==='1' ? 'text-cyan-300' : ''}">= ${res}</div></div>`).join('')}</div>`
+                },
+                4: {
+                    title: 'Tahap 4: Jumlahkan Seluruh Hasil Perkalian',
+                    desc: 'Tambahkan semua nilai yang berasal dari digit biner 1.',
+                    visual: `<div class="bg-slate-800 p-4.5 rounded-2xl font-mono text-center text-base sm:text-lg my-3 border border-cyan-500/30"><span class="text-cyan-300 font-bold">32</span> + <span class="text-slate-500">0</span> + <span class="text-cyan-300 font-bold">8</span> + <span class="text-cyan-300 font-bold">4</span> + <span class="text-slate-500">0</span> + <span class="text-cyan-300 font-bold">1</span></div>`
+                },
+                5: {
+                    title: 'Tahap 5: Hasil Akhir Desimal',
+                    desc: 'Konversi selesai! Bilangan biner 101101₂ setara dengan 45₁₀.',
+                    visual: `<div class="bg-gradient-to-r from-electric-500 to-cyan-500 text-slate-950 p-5 rounded-2xl font-mono text-center text-xl sm:text-2xl font-black my-2 shadow-lg">101101<sub>2</sub> = 45<sub>10</sub></div>`
+                }
+            };
+            const s = stages[step];
+            display.innerHTML = `<div><span class="text-xs font-mono text-cyan-400 uppercase font-bold tracking-wider">Langkah ${step} dari 5</span><h4 class="text-lg sm:text-xl font-extrabold mt-1">${s.title}</h4><p class="text-xs sm:text-sm text-slate-300 mt-1 font-medium">${s.desc}</p></div><div>${s.visual}</div>`;
+        }
+        function nextM5Step() { if (m5CurrentStep < 5) setM5Step(m5CurrentStep + 1); }
+        function prevM5Step() { if (m5CurrentStep > 1) setM5Step(m5CurrentStep - 1); }
+
+        const m6StepsData = [
+            { step: 1, op: '45 ÷ 2', quot: 22, rem: 1 },
+            { step: 2, op: '22 ÷ 2', quot: 11, rem: 0 },
+            { step: 3, op: '11 ÷ 2', quot: 5, rem: 1 },
+            { step: 4, op: '5 ÷ 2', quot: 2, rem: 1 },
+            { step: 5, op: '2 ÷ 2', quot: 1, rem: 0 },
+            { step: 6, op: '1 ÷ 2', quot: 0, rem: 1 }
+        ];
+        let m6ShownCount = 0;
+
+        function m6Control(action) {
+            if (action === 'next' && m6ShownCount < m6StepsData.length) m6ShownCount++;
+            else if (action === 'prev' && m6ShownCount > 0) m6ShownCount--;
+            else if (action === 'reset') m6ShownCount = 1;
+
+            const tbody = document.getElementById('m6-division-tbody');
+            const banner = document.getElementById('m6-result-banner');
+            if (!tbody || !banner) return;
+
+            const visible = m6StepsData.slice(0, m6ShownCount);
+            tbody.innerHTML = visible.map((row, idx) => `
+                <tr class="border-b border-slate-200 ${idx === visible.length - 1 ? 'bg-blue-50/90 font-bold' : 'bg-white'}">
+                    <td class="p-3.5 text-slate-500">#${row.step}</td>
+                    <td class="p-3.5 text-navy-900">${row.op}</td>
+                    <td class="p-3.5 text-slate-700">${row.quot}</td>
+                    <td class="p-3.5">
+                        <span class="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-electric-500 text-white font-black shadow-sm">${row.rem}</span>
+                        ${idx === 0 ? '<span class="text-[11px] font-sans text-slate-500 ml-2 font-medium">(Bit kanan)</span>' : ''}
+                        ${row.step === 6 ? '<span class="text-[11px] font-sans text-cyan-600 font-bold ml-2">(Bit kiri)</span>' : ''}
+                    </td>
+                </tr>
+            `).join('');
+
+            if (m6ShownCount === m6StepsData.length) {
+                banner.className = 'mt-6 p-5 rounded-2xl bg-navy-900 text-white text-center font-mono text-sm sm:text-base shadow-md border border-slate-800';
+                banner.innerHTML = `Membaca sisa dari bawah ke atas: <span class="text-cyan-400 font-black text-lg">101101<sub>2</sub></span> &rarr; Jadi, <strong>45<sub>10</sub> = 101101<sub>2</sub></strong>`;
+            } else {
+                const currentBits = visible.map(v => v.rem).reverse().join('');
+                banner.className = 'mt-6 p-5 rounded-2xl bg-slate-100 border border-slate-200 text-center font-mono text-xs sm:text-sm text-slate-700';
+                banner.innerHTML = `Langkah ${m6ShownCount} dari 6 &bull; Bit terkumpul sementara: <strong class="text-electric-600">${currentBits || '-'}</strong>`;
+            }
+        }
+
+        // ==========================================
+        // 7. LAB KONVERSI INTERAKTIF
+        // ==========================================
+        let labBitWidth = 8;
+        let labBits = [0, 0, 1, 0, 1, 1, 0, 1];
+        let labChallengeTarget = null;
+        let labDecInput = 45;
+        let labDecSteps = [];
+        let labDecVisibleStep = 0;
+
+        function renderLabKonversi(container) {
+            appState.labUsedCount++;
+            saveState();
+
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <!-- Tab Switcher -->
+                    <div class="bg-white p-2 rounded-3xl border border-slate-200/80 shadow-sm flex gap-2 max-w-md mx-auto">
+                        <button onclick="switchLabTab('bin2dec')" id="lab-tab-bin2dec" class="flex-1 py-3 px-4 rounded-2xl font-extrabold text-xs sm:text-sm transition shadow-sm bg-electric-500 text-white">
+                            <i class="fa-solid fa-arrow-right mr-1.5"></i> Biner &rarr; Desimal
+                        </button>
+                        <button onclick="switchLabTab('dec2bin')" id="lab-tab-dec2bin" class="flex-1 py-3 px-4 rounded-2xl font-extrabold text-xs sm:text-sm transition text-slate-600 hover:bg-slate-100">
+                            <i class="fa-solid fa-arrow-left mr-1.5"></i> Desimal &rarr; Biner
+                        </button>
+                    </div>
+                    <div id="lab-workspace"></div>
+                </div>
+            `;
+            switchLabTab('bin2dec');
+        }
+
+        function switchLabTab(mode) {
+            const btn1 = document.getElementById('lab-tab-bin2dec');
+            const btn2 = document.getElementById('lab-tab-dec2bin');
+            if (!btn1 || !btn2) return;
+
+            if (mode === 'bin2dec') {
+                btn1.className = 'flex-1 py-3 px-4 rounded-2xl font-extrabold text-xs sm:text-sm transition shadow-sm bg-electric-500 text-white';
+                btn2.className = 'flex-1 py-3 px-4 rounded-2xl font-extrabold text-xs sm:text-sm transition text-slate-600 hover:bg-slate-100';
+                renderLabBinToDec();
+            } else {
+                btn2.className = 'flex-1 py-3 px-4 rounded-2xl font-extrabold text-xs sm:text-sm transition shadow-sm bg-electric-500 text-white';
+                btn1.className = 'flex-1 py-3 px-4 rounded-2xl font-extrabold text-xs sm:text-sm transition text-slate-600 hover:bg-slate-100';
+                renderLabDecToBin();
+            }
+        }
+
+        function renderLabBinToDec() {
+            const ws = document.getElementById('lab-workspace');
+            const weights = labBitWidth === 8
+                ? [128, 64, 32, 16, 8, 4, 2, 1]
+                : [32768, 16384, 8192, 4096, 2048, 1024, 512, 256, 128, 64, 32, 16, 8, 4, 2, 1];
+
+            if (labBits.length !== labBitWidth) labBits = Array(labBitWidth).fill(0);
+            const binaryStr = labBits.join('');
+            
+            let activeTerms = [];
+            let totalDecimal = 0;
+            labBits.forEach((bit, idx) => {
+                if (bit === 1) {
+                    activeTerms.push(weights[idx]);
+                    totalDecimal += weights[idx];
+                }
+            });
+
+            ws.innerHTML = `
+                <div class="space-y-6 fade-in">
+                    <div class="bg-blue-50/80 border border-blue-200 rounded-3xl p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div class="text-xs sm:text-sm text-navy-900 flex items-start gap-3">
+                            <i class="fa-solid fa-circle-info text-electric-500 text-base mt-0.5"></i>
+                            <span class="font-medium"><strong>Mode ${labBitWidth}-Bit:</strong> Kamu dapat beralih ke 16-bit untuk eksplorasi angka besar atau coba mode <strong>Tantang Saya</strong>!</span>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2.5 shrink-0">
+                            <button onclick="setLabBitWidth(${labBitWidth === 8 ? 16 : 8})" class="px-4 py-2.5 rounded-2xl bg-navy-900 hover:bg-navy-800 text-cyan-300 text-xs font-bold transition shadow-xs">
+                                <i class="fa-solid fa-expand mr-1.5"></i> ${labBitWidth === 8 ? 'Ubah ke 16-Bit' : 'Ubah ke 8-Bit'}
+                            </button>
+                            <button onclick="startLabRandomChallenge()" class="px-4 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold shadow-md transition">
+                                <i class="fa-solid fa-dice mr-1.5"></i> Tantang Saya!
+                            </button>
+                            <button onclick="resetLabBits()" class="px-4 py-2.5 rounded-2xl bg-white border border-blue-200 hover:bg-blue-100 text-electric-600 text-xs font-bold transition">
+                                Reset 0
+                            </button>
+                        </div>
+                    </div>
+
+                    ${labChallengeTarget !== null ? `
+                        <div class="bg-gradient-to-r from-amber-500 to-orange-500 text-white p-6 rounded-3xl shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div>
+                                <span class="text-xs font-black uppercase tracking-wider bg-black/20 px-3 py-1 rounded-full">Tantangan Tebak Angka</span>
+                                <h3 class="text-base sm:text-lg font-black mt-1.5">Berapakah nilai desimal dari susunan lampu biner di bawah?</h3>
+                                <p class="text-xs text-amber-100 font-medium">Hitung jumlah nilai tempat yang bernilai 1!</p>
+                            </div>
+                            <div class="flex items-center gap-2.5 w-full sm:w-auto">
+                                <input type="number" id="lab-guess-input" placeholder="Tebak..." class="w-32 px-4 py-3 rounded-2xl text-navy-900 font-mono font-bold text-center focus:outline-none shadow-inner">
+                                <button onclick="checkLabGuess()" class="px-5 py-3 rounded-2xl bg-navy-900 hover:bg-navy-800 text-cyan-300 text-xs font-extrabold transition">Cek</button>
+                                <button onclick="cancelLabChallenge()" class="px-4 py-3 rounded-2xl bg-white/20 hover:bg-white/30 text-white text-xs font-bold transition"><i class="fa-solid fa-xmark text-sm"></i></button>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                            <div>
+                                <h2 class="text-xl font-black text-navy-900">Panel Bit Interaktif (${labBitWidth} Kolom)</h2>
+                                <p class="text-xs text-slate-500 font-medium">Klik tombol <strong>0 / 1</strong> pada setiap kolom atau ketik langsung bilangan biner.</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <label class="text-xs font-extrabold text-slate-700">Input Biner:</label>
+                                <input type="text" id="lab-bin-text" value="${binaryStr}" maxlength="${labBitWidth}" placeholder="Contoh: 1011" 
+                                    oninput="handleLabBinInput(this.value)"
+                                    class="w-44 px-4 py-2.5 rounded-2xl border-2 border-slate-300 focus:border-electric-500 font-mono font-bold text-center text-navy-900 text-base tracking-wider focus:outline-none shadow-xs">
+                            </div>
+                        </div>
+                        <div id="lab-bin-error" class="hidden mb-4 p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center gap-2.5">
+                            <i class="fa-solid fa-triangle-exclamation text-base"></i>
+                            <span>Input tidak valid! Bilangan biner hanya menerima angka <strong>0</strong> dan <strong>1</strong>.</span>
+                        </div>
+
+                        <div class="grid grid-cols-4 sm:grid-cols-8 gap-3">
+                            ${weights.map((w, idx) => {
+                                const bit = labBits[idx];
+                                const pos = (labBitWidth - 1) - idx;
+                                return `
+                                    <div class="rounded-2xl border-2 p-3 text-center transition-all ${bit === 1 ? 'bg-blue-50/90 border-electric-500 shadow-md shadow-blue-500/10' : 'bg-slate-50 border-slate-200'}">
+                                        <div class="text-[10px] font-mono text-slate-400 font-bold">2<sup>${pos}</sup></div>
+                                        <div class="font-mono font-black text-xs sm:text-sm my-1.5 ${bit === 1 ? 'text-electric-600' : 'text-slate-500'}">${w}</div>
+                                        <button onclick="toggleLabBit(${idx})" class="bit-switch w-full py-2.5 my-1 rounded-xl font-mono font-black text-base sm:text-lg transition ${bit === 1 ? 'bg-electric-500 text-white shadow-md shadow-blue-500/30' : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-100'}">
+                                            ${bit}
+                                        </button>
+                                        <div class="text-[10px] font-mono font-bold ${bit === 1 ? 'text-navy-900' : 'text-slate-400'}">
+                                            ${bit === 1 ? `+${w}` : '0'}
+                                        </div>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    ${labChallengeTarget !== null ? `
+                        <div class="bg-navy-900 text-cyan-300 p-6 rounded-3xl text-center text-xs sm:text-sm font-bold border border-slate-800 shadow-md">
+                            <i class="fa-solid fa-eye-slash mr-2 text-base"></i> Kunci hasil konversi disembunyikan sementara selama Mode Tantang Saya berlangsung!
+                        </div>
+                    ` : `
+                    <div class="grid lg:grid-cols-12 gap-6">
+                        <div class="lg:col-span-8 bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+                            <h3 class="font-extrabold text-navy-900 text-base flex items-center gap-2.5">
+                                <i class="fa-solid fa-calculator text-electric-500 text-lg"></i>
+                                Proses Perhitungan Otomatis
+                            </h3>
+                            <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 font-mono text-xs sm:text-sm space-y-2.5 overflow-x-auto shadow-inner">
+                                <div class="text-slate-500 font-semibold">1. Perkalian setiap digit dengan nilai tempat:</div>
+                                <div class="text-navy-900 leading-relaxed font-bold">
+                                    ${weights.map((w, i) => `<span class="${labBits[i]===1 ? 'text-electric-600 font-black' : 'text-slate-400'}">(${labBits[i]}&times;${w})</span>`).join(' + ')}
+                                </div>
+                                <div class="text-slate-500 pt-2 font-semibold">2. Penjumlahan kolom aktif (bernilai 1):</div>
+                                <div class="text-navy-900 font-black text-base">
+                                    ${activeTerms.length > 0 ? activeTerms.join(' + ') : '0'} = <span class="text-electric-600">${totalDecimal}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-4 bg-gradient-to-br from-navy-900 to-indigo-950 text-white p-7 rounded-3xl shadow-xl flex flex-col justify-center items-center text-center border border-slate-800">
+                            <span class="text-xs font-mono uppercase tracking-wider text-cyan-400 font-bold">Hasil Konversi Desimal</span>
+                            <div class="text-4xl sm:text-5xl font-mono font-black my-3.5 text-white">${totalDecimal}<sub class="text-lg text-cyan-400">10</sub></div>
+                            <div class="text-xs font-mono text-slate-300 bg-navy-950 px-4 py-2 rounded-xl border border-slate-800 break-all">
+                                Biner: ${binaryStr}<sub>2</sub>
+                            </div>
+                        </div>
+                    </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function setLabBitWidth(width) {
+            labBitWidth = width;
+            labChallengeTarget = null;
+            labBits = Array(width).fill(0);
+            if (width === 8) labBits = [0, 0, 1, 0, 1, 1, 0, 1];
+            renderLabBinToDec();
+        }
+
+        function startLabRandomChallenge() {
+            const maxVal = labBitWidth === 8 ? 255 : 2048;
+            const randomNum = Math.floor(Math.random() * (maxVal - 1)) + 1;
+            labChallengeTarget = randomNum;
+            const binStr = randomNum.toString(2).padStart(labBitWidth, '0');
+            labBits = binStr.split('').map(Number);
+            playTone('switch');
+            renderLabBinToDec();
+        }
+
+        function checkLabGuess() {
+            const guessEl = document.getElementById('lab-guess-input');
+            const guess = parseInt(guessEl.value, 10);
+            if (isNaN(guess)) {
+                showToast('Masukkan angka desimal tebakanmu terlebih dahulu!', 'error');
+                return;
+            }
+            if (guess === labChallengeTarget) {
+                const solved = labChallengeTarget;
+                labChallengeTarget = null;
+                addXP(15, `Tebakan Lab Konversi (${solved}) tepat sekali!`);
+                renderLabBinToDec();
+            } else {
+                playTone('wrong');
+                showToast(`Tebakan ${guess} masih belum tepat. Coba hitung lagi!`, 'error');
+            }
+        }
+
+        function cancelLabChallenge() {
+            labChallengeTarget = null;
+            renderLabBinToDec();
+        }
+
+        function toggleLabBit(idx) {
+            playTone('switch');
+            labBits[idx] = labBits[idx] === 1 ? 0 : 1;
+            renderLabBinToDec();
+        }
+
+        function resetLabBits() {
+            labChallengeTarget = null;
+            labBits = Array(labBitWidth).fill(0);
+            renderLabBinToDec();
+        }
+
+        function handleLabBinInput(raw) {
+            const errBox = document.getElementById('lab-bin-error');
+            if (raw === '') {
+                errBox.classList.add('hidden');
+                labBits = Array(labBitWidth).fill(0);
+                renderLabBinToDec();
+                return;
+            }
+            if (!/^[01]+$/.test(raw)) {
+                errBox.classList.remove('hidden');
+                return;
+            }
+            errBox.classList.add('hidden');
+            const padded = raw.padStart(labBitWidth, '0');
+            labBits = padded.split('').map(Number);
+            renderLabBinToDec();
+        }
+
+        function generateDecToBinSteps(num) {
+            if (num === 0) return [{ step: 1, dividend: 0, quotient: 0, remainder: 0 }];
+            const steps = [];
+            let current = num;
+            let count = 1;
+            while (current > 0) {
+                const quotient = Math.floor(current / 2);
+                const remainder = current % 2;
+                steps.push({ step: count++, dividend: current, quotient, remainder });
+                current = quotient;
+            }
+            return steps;
+        }
+
+        function renderLabDecToBin() {
+            labDecSteps = generateDecToBinSteps(labDecInput);
+            if (labDecVisibleStep === 0 || labDecVisibleStep > labDecSteps.length) labDecVisibleStep = labDecSteps.length;
+            drawLabDecToBinUI();
+        }
+
+        function drawLabDecToBinUI() {
+            const ws = document.getElementById('lab-workspace');
+            if (!ws) return;
+
+            const fullBinary = labDecSteps.map(s => s.remainder).reverse().join('');
+            const visibleSteps = labDecSteps.slice(0, labDecVisibleStep);
+            const isComplete = labDecVisibleStep === labDecSteps.length;
+
+            ws.innerHTML = `
+                <div class="space-y-6 fade-in">
+                    <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+                        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <h2 class="text-xl font-black text-navy-900">Simulator Pembagian Berulang dengan 2</h2>
+                                <p class="text-xs text-slate-500 font-medium">Masukkan bilangan bulat desimal nonnegatif untuk melihat proses pembagiannya.</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <input type="text" id="lab-dec-input" value="${labDecInput}" placeholder="Contoh: 45"
+                                    class="w-36 px-4 py-3 rounded-2xl border-2 border-cyan-500 font-mono font-bold text-center text-navy-900 text-lg focus:outline-none shadow-xs">
+                                <button onclick="submitLabDecInput()" class="px-6 py-3.5 rounded-2xl bg-electric-500 hover:bg-electric-600 text-white text-xs sm:text-sm font-bold shadow-md transition">
+                                    Hitung Proses
+                                </button>
+                            </div>
+                        </div>
+                        <div id="lab-dec-error" class="hidden mt-4 p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-bold flex items-center gap-2.5">
+                            <i class="fa-solid fa-triangle-exclamation text-base"></i>
+                            <span id="lab-dec-error-msg">Input tidak valid!</span>
+                        </div>
+                    </div>
+
+                    <div class="grid lg:grid-cols-12 gap-6">
+                        <div class="lg:col-span-8 bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+                            <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+                                <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500">Tabel Pembagian Bertahap</span>
+                                <div class="flex gap-2">
+                                    <button onclick="stepLabDec('reset')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition">Mulai</button>
+                                    <button onclick="stepLabDec('next')" ${isComplete ? 'disabled' : ''} class="px-3.5 py-2 rounded-xl bg-electric-500 disabled:opacity-40 hover:bg-electric-600 text-white text-xs font-bold transition shadow-xs">Berikutnya</button>
+                                    <button onclick="stepLabDec('all')" class="px-3.5 py-2 rounded-xl bg-navy-900 hover:bg-navy-800 text-cyan-400 text-xs font-bold transition">Semua</button>
+                                </div>
+                            </div>
+
+                            <div class="overflow-x-auto">
+                                <table class="w-full text-left border-collapse font-mono text-sm rounded-2xl overflow-hidden shadow-xs">
+                                    <thead>
+                                        <tr class="bg-navy-900 text-white">
+                                            <th class="p-3.5">Tahap</th>
+                                            <th class="p-3.5">Pembagian</th>
+                                            <th class="p-3.5">Hasil Bagi</th>
+                                            <th class="p-3.5 text-cyan-400">Sisa (Bit)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${visibleSteps.map((s, idx) => `
+                                            <tr class="border-b border-slate-200 ${idx === visibleSteps.length - 1 ? 'bg-cyan-50/90 font-bold' : ''}">
+                                                <td class="p-3.5 text-slate-400">#${s.step}</td>
+                                                <td class="p-3.5 text-navy-900">${s.dividend} &divide; 2</td>
+                                                <td class="p-3.5 text-slate-700">${s.quotient}</td>
+                                                <td class="p-3.5">
+                                                    <span class="inline-flex items-center justify-center w-8 h-8 rounded-xl bg-navy-900 text-cyan-400 font-black">${s.remainder}</span>
+                                                </td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="lg:col-span-4 bg-gradient-to-br from-navy-900 to-indigo-950 text-white p-7 rounded-3xl shadow-xl flex flex-col justify-between border border-slate-800">
+                            <div>
+                                <span class="text-xs font-mono uppercase tracking-wider text-cyan-400 font-bold">Pembentukan Biner</span>
+                                <p class="text-xs text-slate-300 mt-1 font-medium">Sisa pembagian disusun dari bawah ke atas:</p>
+                            </div>
+                            
+                            <div class="my-6 text-center">
+                                <div class="inline-flex flex-wrap justify-center gap-2 font-mono">
+                                    ${visibleSteps.map(s => s.remainder).reverse().map(bit => `
+                                        <span class="w-10 h-12 rounded-2xl bg-cyan-400 text-navy-950 font-black text-xl flex items-center justify-center shadow-md">${bit}</span>
+                                    `).join('')}
+                                </div>
+                                <div class="mt-4 text-xs font-mono text-cyan-300 font-bold">
+                                    ${isComplete ? `Hasil: ${labDecInput}₁₀ = ${fullBinary}₂` : `Tahap ${labDecVisibleStep} dari ${labDecSteps.length}...`}
+                                </div>
+                            </div>
+
+                            <div class="bg-navy-950 p-4 rounded-2xl border border-slate-800 text-xs text-slate-300 font-medium">
+                                <i class="fa-solid fa-arrow-up text-cyan-400 mr-1.5"></i> Bit paling kiri berasal dari sisa pembagian terakhir.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function submitLabDecInput() {
+            const raw = document.getElementById('lab-dec-input').value.trim();
+            const errBox = document.getElementById('lab-dec-error');
+            const errMsg = document.getElementById('lab-dec-error-msg');
+
+            if (!/^\d+$/.test(raw)) {
+                errMsg.textContent = 'Masukkan bilangan bulat nonnegatif (contoh: 25, 45, 128).';
+                errBox.classList.remove('hidden');
+                return;
+            }
+            const num = parseInt(raw, 10);
+            if (num > 1000000) {
+                errMsg.textContent = 'Angka terlalu besar! Maksimal 1.000.000.';
+                errBox.classList.remove('hidden');
+                return;
+            }
+            errBox.classList.add('hidden');
+            labDecInput = num;
+            labDecSteps = generateDecToBinSteps(num);
+            labDecVisibleStep = 1;
+            drawLabDecToBinUI();
+        }
+
+        function stepLabDec(action) {
+            if (action === 'reset') labDecVisibleStep = 1;
+            else if (action === 'next' && labDecVisibleStep < labDecSteps.length) labDecVisibleStep++;
+            else if (action === 'all') labDecVisibleStep = labDecSteps.length;
+            drawLabDecToBinUI();
+        }
+
+        // ==========================================
+        // 8. LATIHAN SOAL
+        // ==========================================
+        let activeQuizSession = null;
+
+        function shuffleArray(arr) {
+            const copy = [...arr];
+            for (let i = copy.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [copy[i], copy[j]] = [copy[j], copy[i]];
+            }
+            return copy;
+        }
+
+        function renderLatihan(container, levelToStart = null) {
+            if (levelToStart) {
+                startQuizLevel(levelToStart);
+                return;
+            }
+
+            const levels = [
+                { lvl: 1, name: 'Level 1 – Pemula', tag: 'Dasar Konsep', desc: 'Pengertian biner, desimal, simbol angka, dan nilai tempat sederhana.', color: 'from-blue-500 to-cyan-500', icon: 'fa-seedling' },
+                { lvl: 2, name: 'Level 2 – Menengah', tag: 'Keterampilan Konversi', desc: 'Latihan konversi biner ke desimal, desimal ke biner, dan nilai tempat.', color: 'from-indigo-500 to-blue-600', icon: 'fa-bolt' },
+                { lvl: 3, name: 'Level 3 – Tantangan', tag: 'Analisis Soal', desc: 'Konversi angka lebih besar, analisis kesalahan, dan studi kasus.', color: 'from-purple-600 to-indigo-700', icon: 'fa-fire-flame-curved' }
+            ];
+
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+                        <h1 class="text-3xl font-black text-navy-900">Latihan Interaktif Bertingkat</h1>
+                        <p class="text-sm text-slate-600 mt-2 font-medium">Pilih tingkat kesulitan latihan di bawah ini. Soal dan pilihan jawaban diacak setiap kali kamu berlatih!</p>
+                    </div>
+
+                    <div class="grid md:grid-cols-3 gap-6">
+                        ${levels.map(l => {
+                            const bestScore = appState.quizScores[l.lvl];
+                            const passed = bestScore !== null && bestScore >= 60;
+                            return `
+                                <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden flex flex-col justify-between hover:shadow-xl transition interactive-card">
+                                    <div>
+                                        <div class="bg-gradient-to-r ${l.color} p-6 text-white flex items-center justify-between">
+                                            <div>
+                                                <span class="text-[11px] font-black uppercase tracking-wider bg-white/20 px-3 py-1 rounded-full">${l.tag}</span>
+                                                <h3 class="text-xl font-extrabold mt-2.5">${l.name}</h3>
+                                            </div>
+                                            <i class="fa-solid ${l.icon} text-3xl opacity-90"></i>
+                                        </div>
+                                        <div class="p-6">
+                                            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed mb-5 font-medium">${l.desc}</p>
+                                            <div class="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 flex items-center justify-between text-xs">
+                                                <span class="text-slate-500 font-semibold">Skor Tertinggi:</span>
+                                                <span class="font-mono font-black ${passed ? 'text-emerald-600' : 'text-navy-900'} text-sm">
+                                                    ${bestScore !== null ? bestScore + ' / 100' : 'Belum'}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="p-6 pt-0">
+                                        <button onclick="startQuizLevel(${l.lvl})" class="w-full py-3.5 rounded-2xl bg-navy-900 hover:bg-electric-500 text-white font-extrabold text-sm transition shadow-md">
+                                            ${bestScore !== null ? 'Latihan Lagi' : 'Mulai Latihan'} <i class="fa-solid fa-play ml-1.5"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function startQuizLevel(lvl) {
+            const rawQuestions = practiceBank[lvl];
+            const prepared = shuffleArray(rawQuestions).map(item => ({
+                ...item,
+                shuffledOptions: shuffleArray(item.options)
+            }));
+
+            activeQuizSession = {
+                level: lvl,
+                questions: prepared,
+                currentIndex: 0,
+                correctCount: 0,
+                selectedAnswer: null,
+                isAnswered: false
+            };
+            renderQuizQuestion();
+        }
+
+        function renderQuizQuestion() {
+            const container = document.getElementById('app-content');
+            const qSession = activeQuizSession;
+            const currentQ = qSession.questions[qSession.currentIndex];
+            const total = qSession.questions.length;
+
+            container.innerHTML = `
+                <div class="max-w-3xl mx-auto space-y-6 fade-in">
+                    <div class="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm flex items-center justify-between">
+                        <button onclick="renderLatihan(document.getElementById('app-content'))" class="text-xs font-bold text-slate-500 hover:text-navy-900 flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-left"></i> Kembali ke Pilih Level
+                        </button>
+                        <div class="font-mono text-xs font-bold bg-blue-50 text-electric-600 px-3.5 py-1.5 rounded-xl shadow-inner">
+                            Level ${qSession.level} &bull; Soal ${qSession.currentIndex + 1} / ${total}
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-7 sm:p-9 rounded-3xl border border-slate-200/80 shadow-sm space-y-6">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-slate-400">Pintasan Keyboard: Gunakan tombol <strong>A, B, C, D</strong> dan <strong>Enter</strong></span>
+                        </div>
+                        <h2 class="text-xl sm:text-2xl font-black text-navy-900 leading-relaxed">${currentQ.q}</h2>
+
+                        <div class="space-y-3.5">
+                            ${currentQ.shuffledOptions.map((opt, idx) => {
+                                const letters = ['A', 'B', 'C', 'D'];
+                                let btnStyle = 'bg-slate-50 hover:bg-blue-50/70 border-slate-200 text-navy-900';
+                                let badgeStyle = 'bg-white border-slate-300 text-slate-600';
+
+                                if (qSession.isAnswered) {
+                                    if (opt === currentQ.answer) {
+                                        btnStyle = 'bg-emerald-50 border-emerald-500 text-emerald-950 font-bold';
+                                        badgeStyle = 'bg-emerald-500 border-emerald-500 text-white';
+                                    } else if (opt === qSession.selectedAnswer) {
+                                        btnStyle = 'bg-red-50 border-red-500 text-red-950';
+                                        badgeStyle = 'bg-red-500 border-red-500 text-white';
+                                    } else {
+                                        btnStyle = 'bg-slate-50 border-slate-200 text-slate-400 opacity-60';
+                                    }
+                                }
+
+                                return `
+                                    <button onclick="submitQuizAnswer(${idx})" ${qSession.isAnswered ? 'disabled' : ''} 
+                                        class="w-full text-left p-4.5 rounded-2xl border-2 transition flex items-center gap-4 ${btnStyle}">
+                                        <span class="w-9 h-9 rounded-xl border flex items-center justify-center font-mono font-black text-xs shrink-0 ${badgeStyle}">${letters[idx]}</span>
+                                        <span class="text-sm sm:text-base font-semibold">${opt}</span>
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+
+                        ${qSession.isAnswered ? `
+                            <div class="p-5 rounded-2xl border fade-in ${qSession.selectedAnswer === currentQ.answer ? 'bg-emerald-50/90 border-emerald-200 text-emerald-950' : 'bg-amber-50/90 border-amber-200 text-amber-950'}">
+                                <div class="font-extrabold text-sm sm:text-base flex items-center gap-2 mb-1.5">
+                                    <i class="fa-solid ${qSession.selectedAnswer === currentQ.answer ? 'fa-circle-check text-emerald-600' : 'fa-circle-xmark text-red-600'} text-lg"></i>
+                                    ${qSession.selectedAnswer === currentQ.answer ? 'Jawaban Kamu Benar! (+10 XP)' : 'Kurang Tepat!'}
+                                </div>
+                                <p class="text-xs sm:text-sm leading-relaxed font-medium">${currentQ.explanation}</p>
+                            </div>
+
+                            <div class="flex justify-end pt-2">
+                                <button onclick="nextQuizQuestion()" class="px-7 py-3.5 rounded-2xl bg-electric-500 hover:bg-electric-600 text-white font-extrabold text-sm shadow-lg shadow-blue-500/25 transition">
+                                    ${qSession.currentIndex + 1 < total ? 'Soal Berikutnya' : 'Lihat Skor Level'} <i class="fa-solid fa-arrow-right ml-2"></i>
+                                </button>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+        }
+
+        function submitQuizAnswer(optIdx) {
+            if (activeQuizSession.isAnswered) return;
+            const currentQ = activeQuizSession.questions[activeQuizSession.currentIndex];
+            const chosen = currentQ.shuffledOptions[optIdx];
+            activeQuizSession.selectedAnswer = chosen;
+            activeQuizSession.isAnswered = true;
+
+            if (chosen === currentQ.answer) {
+                activeQuizSession.correctCount++;
+                addXP(10, 'Jawaban latihan benar');
+            }
+            renderQuizQuestion();
+        }
+
+        function nextQuizQuestion() {
+            const qSession = activeQuizSession;
+            if (qSession.currentIndex + 1 < qSession.questions.length) {
+                qSession.currentIndex++;
+                qSession.selectedAnswer = null;
+                qSession.isAnswered = false;
+                renderQuizQuestion();
+            } else {
+                finishQuizLevel();
+            }
+        }
+
+        function finishQuizLevel() {
+            const qSession = activeQuizSession;
+            const total = qSession.questions.length;
+            const score = Math.round((qSession.correctCount / total) * 100);
+            const prevBest = appState.quizScores[qSession.level];
+
+            if (prevBest === null || score > prevBest) {
+                appState.quizScores[qSession.level] = score;
+                saveState();
+            }
+
+            const container = document.getElementById('app-content');
+            container.innerHTML = `
+                <div class="max-w-xl mx-auto bg-white p-9 rounded-3xl border border-slate-200/80 shadow-xl text-center space-y-6 fade-in">
+                    <div class="w-24 h-24 rounded-3xl mx-auto flex items-center justify-center text-5xl shadow-inner ${score >= 60 ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}">
+                        <i class="fa-solid ${score >= 60 ? 'fa-medal' : 'fa-rotate-right'}"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs font-mono uppercase tracking-wider text-electric-600 font-black">Latihan Level ${qSession.level} Selesai</span>
+                        <h2 class="text-4xl font-black text-navy-900 mt-2">Skor: ${score}</h2>
+                        <p class="text-sm text-slate-600 mt-2 font-medium">
+                            Kamu menjawab benar <strong>${qSession.correctCount}</strong> dari <strong>${total}</strong> soal.
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap justify-center gap-3.5 pt-2">
+                        <button onclick="startQuizLevel(${qSession.level})" class="px-6 py-3.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-navy-900 font-bold text-sm transition">
+                            Ulangi Level ${qSession.level}
+                        </button>
+                        <button onclick="renderLatihan(document.getElementById('app-content'))" class="px-6 py-3.5 rounded-2xl bg-electric-500 hover:bg-electric-600 text-white font-extrabold text-sm shadow-md transition">
+                            Pilih Level Lain
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // 9. EVALUASI AKHIR
+        // ==========================================
+        let evalSession = loadEvalSession();
+
+        function loadEvalSession() {
+            try {
+                const raw = sessionStorage.getItem(EVAL_SESSION_KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function saveEvalSession() {
+            try {
+                if (evalSession) sessionStorage.setItem(EVAL_SESSION_KEY, JSON.stringify(evalSession));
+                else sessionStorage.removeItem(EVAL_SESSION_KEY);
+            } catch (e) {}
+        }
+
+        function renderEvaluasi(container) {
+            if (appState.evaluationResult && !evalSession) {
+                renderEvaluationReport(container, appState.evaluationResult);
+                return;
+            }
+
+            if (!evalSession) {
+                container.innerHTML = `
+                    <div class="max-w-2xl mx-auto bg-white p-9 rounded-3xl border border-slate-200/80 shadow-sm text-center space-y-6">
+                        <div class="w-20 h-20 rounded-3xl bg-amber-50 text-amber-500 flex items-center justify-center text-4xl mx-auto shadow-inner">
+                            <i class="fa-solid fa-award"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-mono uppercase tracking-wider text-electric-600 font-black">Ujian Akhir Kompetensi</span>
+                            <h1 class="text-3xl font-black text-navy-900 mt-2">Evaluasi Sistem Bilangan</h1>
+                            <p class="text-sm text-slate-600 mt-2 leading-relaxed font-medium">
+                                Evaluasi ini terdiri dari <strong>15 soal pilihan ganda</strong> (konsep, biner ke desimal, dan desimal ke biner).
+                            </p>
+                        </div>
+                        <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/70 text-left text-xs sm:text-sm text-slate-700 space-y-2.5 font-semibold">
+                            <div class="flex items-center gap-3"><i class="fa-solid fa-check text-emerald-500 text-base"></i> Satu soal ditampilkan per halaman agar kamu fokus.</div>
+                            <div class="flex items-center gap-3"><i class="fa-solid fa-check text-emerald-500 text-base"></i> Bebas berpindah antar nomor dan mengubah jawaban sebelum dikumpulkan.</div>
+                            <div class="flex items-center gap-3"><i class="fa-solid fa-check text-emerald-500 text-base"></i> Rapor nilai lengkap dan pembahasan muncul otomatis setelah selesai.</div>
+                        </div>
+                        <button onclick="startEvaluation()" class="w-full sm:w-auto px-8 py-4 rounded-2xl bg-gradient-to-r from-electric-500 to-cyan-500 hover:from-electric-600 hover:to-cyan-600 text-white font-extrabold text-base shadow-xl shadow-blue-500/30 transition">
+                            Mulai Evaluasi Sekarang <i class="fa-solid fa-arrow-right ml-2"></i>
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+
+            renderEvaluationQuestionUI(container);
+        }
+
+        function startEvaluation() {
+            evalSession = {
+                questions: evaluationQuestions.map(q => ({
+                    ...q,
+                    shuffledOptions: shuffleArray(q.options)
+                })),
+                currentIndex: 0,
+                userAnswers: {}
+            };
+            saveEvalSession();
+            renderEvaluationQuestionUI(document.getElementById('app-content'));
+        }
+
+        function renderEvaluationQuestionUI(container) {
+            const idx = evalSession.currentIndex;
+            const q = evalSession.questions[idx];
+            const total = evalSession.questions.length;
+            const answeredCount = Object.keys(evalSession.userAnswers).length;
+            const progressPct = Math.round((answeredCount / total) * 100);
+
+            container.innerHTML = `
+                <div class="max-w-4xl mx-auto space-y-6 fade-in">
+                    <div class="bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="font-extrabold text-navy-900 text-sm">Soal Nomor <span class="text-electric-600 font-mono text-lg">${idx + 1}</span> dari ${total}</span>
+                            <span class="text-xs font-mono text-slate-500 font-bold">Terjawab: <strong>${answeredCount}/${total}</strong> (${progressPct}%)</span>
+                        </div>
+                        <div class="w-full bg-slate-100 h-3 rounded-full overflow-hidden p-0.5 border border-slate-200">
+                            <div class="bg-electric-500 h-full rounded-full transition-all duration-300 shadow-xs" style="width: ${progressPct}%"></div>
+                        </div>
+                        <div class="flex flex-wrap gap-2 pt-1">
+                            ${evalSession.questions.map((_, i) => {
+                                const isCurrent = i === idx;
+                                const isAnswered = evalSession.userAnswers[i] !== undefined;
+                                let cls = 'bg-slate-100 text-slate-600 hover:bg-slate-200';
+                                if (isCurrent) cls = 'bg-navy-900 text-cyan-400 ring-2 ring-cyan-400';
+                                else if (isAnswered) cls = 'bg-blue-100 text-electric-700 border border-blue-300';
+                                return `<button onclick="jumpEvalQuestion(${i})" class="w-9 h-9 rounded-xl font-mono text-xs font-black transition shadow-xs ${cls}">${i + 1}</button>`;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-7 sm:p-9 rounded-3xl border border-slate-200/80 shadow-sm space-y-6">
+                        <span class="inline-block text-xs font-extrabold uppercase tracking-wider bg-cyan-50 text-cyan-700 px-3.5 py-1.5 rounded-full border border-cyan-200">
+                            Kategori: ${q.category}
+                        </span>
+                        <h2 class="text-xl sm:text-2xl font-black text-navy-900 leading-relaxed">${q.q}</h2>
+
+                        <div class="space-y-3.5">
+                            ${q.shuffledOptions.map((opt, optIdx) => {
+                                const letters = ['A', 'B', 'C', 'D'];
+                                const selected = evalSession.userAnswers[idx] === opt;
+                                return `
+                                    <button onclick="selectEvalOption(${idx}, ${optIdx})" 
+                                        class="w-full text-left p-4.5 rounded-2xl border-2 transition flex items-center gap-4 ${selected ? 'bg-blue-50/80 border-electric-500 text-navy-900 font-bold shadow-sm' : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'}">
+                                        <span class="w-9 h-9 rounded-xl border flex items-center justify-center font-mono font-black text-xs shrink-0 ${selected ? 'bg-electric-500 border-electric-500 text-white shadow-sm' : 'bg-white border-slate-300 text-slate-500'}">${letters[optIdx]}</span>
+                                        <span class="text-sm sm:text-base font-semibold">${opt}</span>
+                                    </button>
+                                `;
+                            }).join('')}
+                        </div>
+
+                        <div class="pt-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                            <button onclick="jumpEvalQuestion(${idx - 1})" ${idx === 0 ? 'disabled' : ''} class="px-5 py-3 rounded-2xl bg-slate-100 disabled:opacity-40 hover:bg-slate-200 text-slate-700 text-xs sm:text-sm font-bold transition">
+                                <i class="fa-solid fa-chevron-left mr-1.5"></i> Sebelumnya
+                            </button>
+
+                            <div class="flex items-center gap-3">
+                                ${idx < total - 1 ? `
+                                    <button onclick="jumpEvalQuestion(${idx + 1})" class="px-6 py-3 rounded-2xl bg-electric-500 hover:bg-electric-600 text-white text-xs sm:text-sm font-extrabold transition shadow-md">
+                                        Selanjutnya <i class="fa-solid fa-chevron-right ml-1.5"></i>
+                                    </button>
+                                ` : ''}
+                                <button onclick="confirmFinishEvaluation()" class="px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-black shadow-lg shadow-emerald-500/20 transition">
+                                    <i class="fa-solid fa-paper-plane mr-1.5"></i> Selesaikan Evaluasi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectEvalOption(qIdx, optIdx) {
+            playTone('switch');
+            evalSession.userAnswers[qIdx] = evalSession.questions[qIdx].shuffledOptions[optIdx];
+            saveEvalSession();
+            renderEvaluationQuestionUI(document.getElementById('app-content'));
+        }
+
+        function jumpEvalQuestion(targetIdx) {
+            if (targetIdx >= 0 && targetIdx < evalSession.questions.length) {
+                evalSession.currentIndex = targetIdx;
+                saveEvalSession();
+                renderEvaluationQuestionUI(document.getElementById('app-content'));
+            }
+        }
+
+        function confirmFinishEvaluation() {
+            const total = evalSession.questions.length;
+            const answered = Object.keys(evalSession.userAnswers).length;
+            const unanswered = total - answered;
+
+            const msg = unanswered > 0
+                ? `Masih ada ${unanswered} soal yang belum kamu jawab. Apakah kamu yakin ingin mengakhiri evaluasi sekarang?`
+                : 'Semua 15 soal sudah terjawab. Apakah kamu yakin ingin mengumpulkan dan melihat hasil evaluasi?';
+
+            openModal('Konfirmasi Selesaikan Evaluasi', msg, () => {
+                calculateAndSaveEvaluation();
+            });
+        }
+
+        function calculateAndSaveEvaluation() {
+            let correct = 0;
+            const reviewList = evalSession.questions.map((q, idx) => {
+                const userAns = evalSession.userAnswers[idx] || null;
+                const isCorrect = userAns === q.answer;
+                if (isCorrect) correct++;
+                return {
+                    number: idx + 1,
+                    category: q.category,
+                    question: q.q,
+                    userAnswer: userAns,
+                    correctAnswer: q.answer,
+                    isCorrect: isCorrect,
+                    explanation: q.explanation
+                };
+            });
+
+            const total = evalSession.questions.length;
+            const wrong = total - correct;
+            const percentage = Math.round((correct / total) * 100);
+            const score = percentage;
+
+            let predicate = 'Perlu Bimbingan';
+            if (score >= 90) predicate = 'Sangat Baik (Istimewa)';
+            else if (score >= 75) predicate = 'Baik (Kompeten)';
+            else if (score >= 60) predicate = 'Cukup';
+
+            const resultObj = {
+                score, correct, wrong, percentage, predicate,
+                date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
+                reviewList
+            };
+
+            const isFirstTime = !appState.evaluationResult;
+            appState.evaluationResult = resultObj;
+            evalSession = null;
+            saveEvalSession();
+            saveState();
+
+            if (isFirstTime) addXP(100, 'Menyelesaikan Evaluasi Akhir BINARA!');
+            renderEvaluationReport(document.getElementById('app-content'), resultObj);
+        }
+
+        function renderEvaluationReport(container, res) {
+            container.innerHTML = `
+                <div class="space-y-6 fade-in">
+                    <div class="bg-gradient-to-br from-slate-950 via-navy-900 to-indigo-950 text-white p-7 sm:p-9 rounded-3xl shadow-2xl border border-slate-800">
+                        <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                            <div class="space-y-3 text-center md:text-left">
+                                <span class="text-xs font-mono uppercase tracking-wider text-cyan-400 bg-cyan-400/15 px-3.5 py-1.5 rounded-full font-bold">Laporan Rapor Evaluasi BINARA</span>
+                                <h1 class="text-2xl sm:text-3xl font-black">Predikat: <span class="text-cyan-400">${res.predicate}</span></h1>
+                                <p class="text-xs sm:text-sm text-slate-300 font-medium">Nama Pelajar: <strong>${appState.studentName}</strong> &bull; ${res.date}</p>
+                                <div class="pt-2 flex flex-wrap justify-center md:justify-start gap-3 no-print">
+                                    <button onclick="window.print()" class="px-5 py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-600 text-slate-950 font-black text-xs sm:text-sm transition shadow-md">
+                                        <i class="fa-solid fa-print mr-1.5"></i> Cetak Rapor / PDF
+                                    </button>
+                                    <button onclick="startEvaluation()" class="px-5 py-3 rounded-2xl bg-electric-500 hover:bg-electric-600 text-white font-extrabold text-xs sm:text-sm transition shadow-md">
+                                        <i class="fa-solid fa-rotate-right mr-1.5"></i> Ulangi Evaluasi
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full md:w-auto">
+                                <div class="bg-slate-950/90 border border-cyan-500/40 p-4 rounded-2xl text-center shadow-inner">
+                                    <span class="text-[11px] text-slate-400 block font-bold">Nilai Akhir</span>
+                                    <strong class="text-3xl font-mono font-black text-cyan-400">${res.score}</strong>
+                                </div>
+                                <div class="bg-slate-950/90 border border-slate-800 p-4 rounded-2xl text-center shadow-inner">
+                                    <span class="text-[11px] text-slate-400 block font-bold">Benar</span>
+                                    <strong class="text-2xl font-mono font-black text-emerald-400">${res.correct}</strong>
+                                </div>
+                                <div class="bg-slate-950/90 border border-slate-800 p-4 rounded-2xl text-center shadow-inner">
+                                    <span class="text-[11px] text-slate-400 block font-bold">Salah</span>
+                                    <strong class="text-2xl font-mono font-black text-rose-400">${res.wrong}</strong>
+                                </div>
+                                <div class="bg-slate-950/90 border border-slate-800 p-4 rounded-2xl text-center shadow-inner">
+                                    <span class="text-[11px] text-slate-400 block font-bold">Ketepatan</span>
+                                    <strong class="text-2xl font-mono font-black text-white">${res.percentage}%</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+                        <h2 class="text-xl font-black text-navy-900">Pembahasan Jawaban Evaluasi</h2>
+                        <div class="space-y-4">
+                            ${res.reviewList.map(item => `
+                                <div class="p-5 rounded-2xl border ${item.isCorrect ? 'bg-emerald-50/50 border-emerald-200' : 'bg-rose-50/50 border-rose-200'}">
+                                    <div class="flex items-start justify-between gap-2 mb-2">
+                                        <span class="text-xs font-mono font-black px-3 py-1 rounded-xl ${item.isCorrect ? 'bg-emerald-100 text-emerald-900' : 'bg-rose-100 text-rose-900'}">
+                                            Soal #${item.number} &bull; ${item.isCorrect ? 'Benar' : 'Salah'}
+                                        </span>
+                                        <span class="text-xs text-slate-500 font-bold">${item.category}</span>
+                                    </div>
+                                    <p class="text-sm sm:text-base font-extrabold text-navy-900 mb-2">${item.question}</p>
+                                    <div class="text-xs sm:text-sm space-y-1 mb-3 font-medium">
+                                        <div>Jawaban Kamu: <strong class="${item.isCorrect ? 'text-emerald-700' : 'text-rose-700'}">${item.userAnswer || 'Tidak dijawab'}</strong></div>
+                                        ${!item.isCorrect ? `<div>Jawaban Benar: <strong class="text-emerald-700">${item.correctAnswer}</strong></div>` : ''}
+                                    </div>
+                                    <div class="bg-white/90 p-3.5 rounded-xl text-xs sm:text-sm text-slate-700 border border-slate-200/80 font-medium">
+                                        <strong>Pembahasan:</strong> ${item.explanation}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==========================================
+        // 10. PROFIL & BADGE
+        // ==========================================
+        function renderProfil(container) {
+            const progress = calculateOverallProgress();
+            const badges = getBadges();
+
+            let motivation = 'Langkah awal yang hebat! Terus jelajahi modul materi BINARA.';
+            if (progress >= 80) motivation = 'Luar biasa! Kamu sudah menguasai sistem bilangan biner dan desimal dengan sangat baik.';
+            else if (progress >= 40) motivation = 'Progres yang mengesankan! Coba tantang dirimu di Level 3 Latihan Soal dan Evaluasi Akhir.';
+
+            container.innerHTML = `
+                <div class="space-y-6">
+                    <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-6">
+                        <div class="flex flex-col sm:flex-row items-center gap-5 text-center sm:text-left">
+                            <div class="w-20 h-20 rounded-3xl bg-gradient-to-tr from-electric-500 to-cyan-400 text-navy-950 flex items-center justify-center text-4xl shadow-lg">
+                                <i class="fa-solid fa-user-astronaut"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center justify-center sm:justify-start gap-2.5">
+                                    <h1 class="text-2xl font-black text-navy-900">${appState.studentName}</h1>
+                                    <button onclick="editStudentName()" class="text-xs text-electric-600 hover:underline font-bold" title="Ubah Nama">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-0.5 font-medium">Murid SMP Kelas VIII &bull; Informatika</p>
+                                <div class="mt-2.5 inline-flex items-center gap-2 bg-blue-50 text-electric-700 px-3.5 py-1.5 rounded-full text-xs font-black shadow-xs">
+                                    <i class="fa-solid fa-bolt text-amber-500"></i> Total Poin: ${appState.xp} XP
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="confirmResetAllProgress()" class="px-5 py-3 rounded-2xl border border-rose-200 text-rose-600 hover:bg-rose-50 text-xs font-bold transition">
+                            <i class="fa-solid fa-trash-can mr-1.5"></i> Reset Progres
+                        </button>
+                    </div>
+
+                    <div class="bg-gradient-to-r from-navy-900 to-indigo-950 text-white p-6 rounded-3xl flex items-center gap-4 shadow-lg border border-slate-800">
+                        <div class="w-12 h-12 rounded-2xl bg-cyan-400/20 text-cyan-400 flex items-center justify-center text-xl shrink-0">
+                            <i class="fa-solid fa-quote-left"></i>
+                        </div>
+                        <p class="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed">${motivation}</p>
+                    </div>
+
+                    <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+                        <h2 class="text-xl font-black text-navy-900 mb-5">Koleksi Badge Pencapaian</h2>
+                        <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                            ${badges.map(b => `
+                                <div class="p-6 rounded-3xl border text-center transition interactive-card ${b.unlocked ? 'bg-white border-blue-200 shadow-md' : 'bg-slate-50 border-slate-200 opacity-60 grayscale'}">
+                                    <div class="w-16 h-16 rounded-2xl mx-auto mb-4 bg-gradient-to-tr ${b.color} text-white flex items-center justify-center text-3xl shadow-lg">
+                                        <i class="fa-solid ${b.icon}"></i>
+                                    </div>
+                                    <h3 class="font-extrabold text-base text-navy-900">${b.name}</h3>
+                                    <p class="text-xs text-slate-500 mt-1.5 leading-relaxed font-medium">${b.desc}</p>
+                                    <span class="inline-block mt-4 text-[11px] font-black uppercase tracking-wider px-3 py-1 rounded-full ${b.unlocked ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'}">
+                                        ${b.unlocked ? 'Terkumpul' : 'Terkunci'}
+                                    </span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+                            <h3 class="font-extrabold text-navy-900 text-lg mb-4">Status Materi Pembelajaran</h3>
+                            <div class="space-y-3">
+                                ${materialsData.map(m => {
+                                    const done = appState.completedMaterials.includes(m.id);
+                                    return `
+                                        <div class="flex items-center justify-between text-xs sm:text-sm p-3.5 rounded-2xl bg-slate-50 font-semibold">
+                                            <span class="text-slate-700">Materi ${m.id}: ${m.title}</span>
+                                            <span class="font-bold ${done ? 'text-emerald-600' : 'text-slate-400'}">
+                                                ${done ? '<i class="fa-solid fa-circle-check mr-1.5"></i>Selesai' : 'Belum'}
+                                            </span>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-7 rounded-3xl border border-slate-200/80 shadow-sm">
+                            <h3 class="font-extrabold text-navy-900 text-lg mb-4">Riwayat Skor Latihan & Evaluasi</h3>
+                            <div class="space-y-3.5">
+                                ${[1, 2, 3].map(lvl => `
+                                    <div class="flex items-center justify-between text-xs sm:text-sm p-3.5 rounded-2xl bg-slate-50 font-semibold">
+                                        <span class="text-slate-700">Latihan Level ${lvl}</span>
+                                        <span class="font-mono font-black text-electric-600">
+                                            ${appState.quizScores[lvl] !== null ? appState.quizScores[lvl] + ' / 100' : '-'}
+                                        </span>
+                                    </div>
+                                `).join('')}
+                                <div class="flex items-center justify-between text-xs sm:text-sm p-3.5 rounded-2xl bg-blue-50 border border-blue-200 font-bold">
+                                    <span class="text-navy-900">Evaluasi Akhir (15 Soal)</span>
+                                    <span class="font-mono font-black text-electric-700">
+                                        ${appState.evaluationResult ? appState.evaluationResult.score + ' / 100' : 'Belum Dikerjakan'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function editStudentName() {
+            const modal = document.getElementById('custom-modal');
+            document.getElementById('modal-title').textContent = 'Ubah Nama Pelajar';
+            document.getElementById('modal-message').innerHTML = `
+                <label class="block text-xs font-bold text-slate-700 mb-2">Masukkan nama kamu:</label>
+                <input type="text" id="new-student-name-input" value="${appState.studentName}" maxlength="30" class="w-full px-4 py-3 rounded-2xl border border-slate-300 text-navy-900 font-bold focus:border-electric-500 focus:outline-none">
+            `;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            document.getElementById('modal-cancel').onclick = closeModal;
+            document.getElementById('modal-confirm').onclick = () => {
+                const val = document.getElementById('new-student-name-input').value.trim();
+                if (val) {
+                    appState.studentName = val;
+                    saveState();
+                    renderProfil(document.getElementById('app-content'));
+                    showToast('Nama berhasil diperbarui!', 'success');
+                }
+                closeModal();
+            };
+        }
+
+        function confirmResetAllProgress() {
+            openModal(
+                'Reset Seluruh Progres?',
+                'Semua poin XP, tanda selesai materi, skor latihan, dan hasil evaluasi akan dihapus dari perangkat ini. Lanjutkan?',
+                () => {
+                    appState = { ...defaultState };
+                    saveState();
+                    renderProfil(document.getElementById('app-content'));
+                    showToast('Progres belajar berhasil direset.', 'info');
+                }
+            );
+        }
+
+        // ==========================================
+        // 11. UTILITAS TOAST & MODAL
+        // ==========================================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = {
+                success: 'bg-navy-900 border-emerald-400 text-white',
+                error: 'bg-rose-600 border-rose-400 text-white',
+                info: 'bg-navy-900 border-cyan-400 text-white'
+            };
+            const icons = {
+                success: 'fa-circle-check text-emerald-400 text-base',
+                error: 'fa-circle-exclamation text-white text-base',
+                info: 'fa-bolt text-cyan-400 text-base'
+            };
+
+            toast.className = `pointer-events-auto flex items-center gap-3 px-5 py-3.5 rounded-2xl border shadow-xl text-xs sm:text-sm font-bold fade-in ${colors[type]}`;
+            toast.innerHTML = `<i class="fa-solid ${icons[type]}"></i><span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function openModal(title, message, onConfirm) {
+            const modal = document.getElementById('custom-modal');
+            document.getElementById('modal-title').textContent = title;
+            document.getElementById('modal-message').textContent = message;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            document.getElementById('modal-cancel').onclick = closeModal;
+            document.getElementById('modal-confirm').onclick = () => {
+                closeModal();
+                if (onConfirm) onConfirm();
+            };
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('custom-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Keyboard accessibility
+        window.addEventListener('keydown', (e) => {
+            if (['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) return;
+
+            const key = e.key.toUpperCase();
+            const optMap = { 'A': 0, 'B': 1, 'C': 2, 'D': 3 };
+
+            if (currentRoute === 'latihan' && activeQuizSession) {
+                if (optMap[key] !== undefined && !activeQuizSession.isAnswered) {
+                    submitQuizAnswer(optMap[key]);
+                } else if ((e.key === 'Enter' || e.key === 'ArrowRight') && activeQuizSession.isAnswered) {
+                    nextQuizQuestion();
+                }
+            }
+
+            if (currentRoute === 'evaluasi' && evalSession) {
+                if (optMap[key] !== undefined) {
+                    selectEvalOption(evalSession.currentIndex, optMap[key]);
+                } else if (e.key === 'ArrowRight') {
+                    jumpEvalQuestion(evalSession.currentIndex + 1);
+                } else if (e.key === 'ArrowLeft') {
+                    jumpEvalQuestion(evalSession.currentIndex - 1);
+                }
+            }
+        });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            updateGlobalUI();
+            navigateTo('beranda');
+        });
+    </script>
+</body>
+</html>
